@@ -23,8 +23,6 @@ app.use(
   })
 );
 
-// handle preflight
-app.options("*", cors());
 
 
 // app.use(
