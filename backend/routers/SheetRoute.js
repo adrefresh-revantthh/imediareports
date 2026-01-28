@@ -175,7 +175,7 @@ router.post("/getsheetsbyids", async (req, res) => {
    ✔ GENEALOGY ROUTES
 --------------------------------------------------- */
 router.post("/uploadGenealogy", verifyToken, uploadGenealogySheets);
-router.get("/getgenealogyrecords", getAllGenealogySheets);
+router.get("/getgenealogyrecords",verifyToken, getAllGenealogySheets);
 
 /* ---------------------------------------------------
    ✔ LOGIN HISTORY

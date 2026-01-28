@@ -675,7 +675,7 @@ export default function DisplayData() {
       const token = JSON.parse(localStorage.getItem("jwt"))?.token;
     
       const res = await axios.get(
-        "https://imediareports.onrender.com/api/getgenealogyrecords", // ✅ correct domain
+        "http://localhost:5000/api/getgenealogyrecords", // ✅ correct domain
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -683,6 +683,9 @@ export default function DisplayData() {
         }
       );
       const docs = res.data.genealogySheets || [];
+      console.log(res,"ress");
+      
+
 
       const processDoc = (doc) => {
         if (!doc?.data?.length) return null;

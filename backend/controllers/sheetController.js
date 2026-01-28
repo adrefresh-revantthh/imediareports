@@ -506,36 +506,26 @@ export const getAllSheets = async (req, res) => {
 
 /* ---------------------- GENEALOGY FETCH (UNCHANGED) ---------------------- */
 
-// export const getAllGenealogySheets = async (req, res) => {
-//   try {
-//     const userId = req.user?.userId || req.user?._id;
-
-//     const userSheets = await GenealogySheet.find({
-//       $or: [
-//         { advertiser_id: userId },
-//         { publisher_id: userId },
-//       ],
-//     }).populate("uploadedBy", "name email role");
-// console.log(userSheets);
-
-//     res.status(200).json({
-//       genealogySheets: userSheets,
-//     });
-//   } catch (err) {
-//     console.error("❌ Error fetching genealogy:", err);
-//     res.status(500).json({ message: "Internal Server Error" });
-//   }
-// };
 export const getAllGenealogySheets = async (req, res) => {
   try {
-    const data = await GenealogySheet.find({});
-    return res.status(200).json({ genealogySheets: data });
+    const userId = req.user?.userId || req.user?._id;
+
+    const userSheets = await GenealogySheet.find({
+      $or: [
+        { advertiser_id: userId },
+        { publisher_id: userId },
+      ],
+    }).populate("uploadedBy", "name email role");
+console.log(userSheets);
+
+    res.status(200).json({
+      genealogySheets: userSheets,
+    });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: err.message });
+    console.error("❌ Error fetching genealogy:", err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
-;
 
 /* ---------------------- USER CRUD (UNCHANGED) ---------------------- */
 

@@ -433,9 +433,11 @@ const AdWidget = () => {
         const token = JSON.parse(localStorage.getItem("jwt"))?.token;
         if (!token) return;
 
-        const res = await axios.get("http://localhost:5000/api/getallsheets", {
+        const res = await axios.get("https://imediareports.onrender.com/api/getallsheets", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log(res,"widget");
+        
 
         const normalize = (n) => n?.trim().toLowerCase().replace(/\s|_/g, "");
         const adSheet = (res.data || []).find((s) =>
