@@ -673,10 +673,15 @@ export default function DisplayData() {
   useEffect(() => {
     const fetchData = async () => {
       const token = JSON.parse(localStorage.getItem("jwt"))?.token;
-      const res = await axios.get("https://imediareports.onrender.com/api/getgenealogyrecords", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+    
+      const res = await axios.get(
+        "https://imediareports.onrender.com/api/getgenealogyrecords", // ✅ correct domain
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const docs = res.data.genealogySheets || [];
 
       const processDoc = (doc) => {

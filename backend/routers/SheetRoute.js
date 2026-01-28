@@ -103,7 +103,7 @@ import {
   getPublishers,
   getExecutives,
   heartbeat,
-} from "../controllers/sheetController.js";
+} from "../controllers/SheetController.js";
 
 import { verifyToken } from "../authMiddleware/authMiddleware.js";
 import { Sheet,GenealogySheet } from "../models/SheetModel.js";
@@ -175,7 +175,7 @@ router.post("/getsheetsbyids", async (req, res) => {
    ✔ GENEALOGY ROUTES
 --------------------------------------------------- */
 router.post("/uploadGenealogy", verifyToken, uploadGenealogySheets);
-router.get("/getgenealogyrecords", verifyToken, getAllGenealogySheets);
+router.get("/getgenealogyrecords", getAllGenealogySheets);
 
 /* ---------------------------------------------------
    ✔ LOGIN HISTORY
