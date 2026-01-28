@@ -98,16 +98,22 @@ const app = express();
 // import cors from "cors";
 
 // import cors from "cors";
+import cors from "cors";
+
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://imediareports-zi3j.vercel.app"
+      "https://imediareports-zi3j.vercel.app",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// handle preflight
+app.options("*", cors());
+
 
 // app.use(
 //   cors({
