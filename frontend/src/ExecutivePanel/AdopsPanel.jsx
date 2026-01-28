@@ -606,7 +606,6 @@
 
 
  
-
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import axios from "axios";
@@ -701,11 +700,25 @@ const UploadCenter = () => {
     reader.onload = async (event) => {
       const workbook = XLSX.read(event.target.result, { type: "array" });
 
-      const sheets = workbook.SheetNames.map((name) => ({
+      const parsedSheets = workbook.SheetNames.map((name) => ({
         name: name.trim().toLowerCase(),
         original: name,
         data: XLSX.utils.sheet_to_json(workbook.Sheets[name], { defval: "" }),
       }));
+
+      // ✅ ONLY NEW LOGIC (SPLIT SHEETS)
+      const genealogySheets = parsedSheets.filter((s) =>
+        ["genealogy", "tree", "referral", "network", "lineage"].some((k) =>
+          s.name.includes(k)
+        )
+      );
+
+      const normalSheets = parsedSheets.filter(
+        (s) =>
+          !["genealogy", "tree", "referral", "network", "lineage"].some((k) =>
+            s.name.includes(k)
+          )
+      );
 
       const token = JSON.parse(localStorage.getItem("jwt"))?.token;
       const uploaderObj = uploaders.find((u) => u._id === uploadedBy);
@@ -722,13 +735,27 @@ const UploadCenter = () => {
       };
 
       try {
-        await axios.post(
-          "http://localhost:5000/api/upload",
-          { sheets, meta },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        // ✅ NORMAL SHEETS
+        if (normalSheets.length > 0) {
+          await axios.post(
+            "http://localhost:5000/api/upload",
+            { sheets: normalSheets, meta },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        }
+
+        // ✅ GENEALOGY SHEETS (THIS WAS MISSING)
+        if (genealogySheets.length > 0) {
+          await axios.post(
+            "http://localhost:5000/api/uploadGenealogy",
+            { sheets: genealogySheets, meta },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        }
+
         alert("📤 Upload Successful!");
       } catch (err) {
+        console.error(err);
         alert("Upload failed");
       } finally {
         setUploading(false);
@@ -742,23 +769,54 @@ const UploadCenter = () => {
     <div style={styles.card}>
       <h2 style={styles.title}>📊 AdOps Upload Center</h2>
       <div style={styles.grid}>
-        <select style={styles.input} onChange={(e) => setPublisher(publishers.find(p => p._id === e.target.value))}>
+        <select
+          style={styles.input}
+          onChange={(e) =>
+            setPublisher(publishers.find((p) => p._id === e.target.value))
+          }
+        >
           <option value="">Select Publisher</option>
-          {publishers.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+          {publishers.map((p) => (
+            <option key={p._id} value={p._id}>
+              {p.name}
+            </option>
+          ))}
         </select>
 
-        <select style={styles.input} onChange={(e) => setAdvertiser(advertisers.find(a => a._id === e.target.value))}>
+        <select
+          style={styles.input}
+          onChange={(e) =>
+            setAdvertiser(advertisers.find((a) => a._id === e.target.value))
+          }
+        >
           <option value="">Select Advertiser</option>
-          {advertisers.map(a => <option key={a._id} value={a._id}>{a.name}</option>)}
+          {advertisers.map((a) => (
+            <option key={a._id} value={a._id}>
+              {a.name}
+            </option>
+          ))}
         </select>
 
-        <select style={styles.input} onChange={(e) => setUploadedBy(e.target.value)}>
+        <select
+          style={styles.input}
+          onChange={(e) => setUploadedBy(e.target.value)}
+        >
           <option value="">Uploaded By</option>
-          {uploaders.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
+          {uploaders.map((u) => (
+            <option key={u._id} value={u._id}>
+              {u.name}
+            </option>
+          ))}
         </select>
 
-        <select style={styles.input} value={campaign} onChange={(e) => setCampaign(e.target.value)}>
-          {campaigns.map(c => <option key={c}>{c}</option>)}
+        <select
+          style={styles.input}
+          value={campaign}
+          onChange={(e) => setCampaign(e.target.value)}
+        >
+          {campaigns.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
         </select>
 
         {campaign === "Other" && (

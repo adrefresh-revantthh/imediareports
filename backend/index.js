@@ -95,20 +95,34 @@ import router from "./routers/SheetRoute.js"; // adjust path as needed
 import { User } from "./models/SheetModel.js";
 
 const app = express();
+// import cors from "cors";
+
+// import cors from "cors";
 app.use(
   cors({
-    origin: "http://localhost:5173",  // your Vite frontend
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: [
+      "http://localhost:5173",
+      "https://imedireports.vercel.app",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   })
 );
+
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173",  // your Vite frontend
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     credentials: true,
+//   })
+// );
 // app.options("/api/*", cors());
 // app.options("*", cors());
 app.use(express.json());
 
 // MongoDB Connection
-const MONGO_URI = "mongodb://127.0.0.1:27017/imediareports";
+const MONGO_URI ="mongodb+srv://imediaAdmin:admin123@cluster0.rqzwk8k.mongodb.net/imediareports";
 mongoose
   .connect(MONGO_URI)
   .then(() => console.log("✅ MongoDB connected successfully"))

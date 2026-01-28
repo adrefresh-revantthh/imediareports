@@ -510,13 +510,17 @@ export const getAllGenealogySheets = async (req, res) => {
   try {
     const userId = req.user?.userId || req.user?._id;
 
-    const userSheets = await GenealogySheet.find({ advertiser_id: userId }|| { publisher_id:userId })
-      .populate("uploadedBy", "name email role");
+    const userSheets = await GenealogySheet.find({
+      $or: [
+        { advertiser_id: userId },
+        { publisher_id: userId },
+      ],
+    }).populate("uploadedBy", "name email role");
+console.log(userSheets);
 
-    if (!userSheets.length)
-      return res.status(404).json({ message: "No genealogy sheets found" });
-
-    res.status(200).json(userSheets);
+    res.status(200).json({
+      genealogySheets: userSheets,
+    });
   } catch (err) {
     console.error("❌ Error fetching genealogy:", err);
     res.status(500).json({ message: "Internal Server Error" });
