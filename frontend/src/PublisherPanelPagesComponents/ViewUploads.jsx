@@ -461,7 +461,7 @@ const ViewUploads = () => {
 
     const fetchSheets = async () => {
       try {
-        const res = await axios.post("http://localhost:5000/api/getsheetsbyids", { sheetIds });
+        const res = await axios.post("https://imediareports.onrender.com/api/getsheetsbyids", { sheetIds });
         setSheets(res.data);
 
         // Initialize row counts: each sheet → first 6 rows visible

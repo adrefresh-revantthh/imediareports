@@ -26,7 +26,7 @@ const UserManagement = () => {
   /* ✅ Fetch All Users */
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/getallusers", {
+      const res = await axios.get("https://imediareports.onrender.com/api/getallusers", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);

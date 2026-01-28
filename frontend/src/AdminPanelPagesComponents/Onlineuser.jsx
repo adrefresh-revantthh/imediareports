@@ -28,7 +28,7 @@ useEffect(() => {
 
   const sendHeartbeat = async () => {
     await axios.post(
-      "http://localhost:5000/api/heartbeat",
+      "https://imediareports.onrender.com/api/heartbeat",
       { token },
       {
         withCredentials: true,

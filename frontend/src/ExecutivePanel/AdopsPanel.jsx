@@ -738,7 +738,7 @@ const UploadCenter = () => {
         // ✅ NORMAL SHEETS
         if (normalSheets.length > 0) {
           await axios.post(
-            "http://localhost:5000/api/upload",
+            "https://imediareports.onrender.com/api/upload",
             { sheets: normalSheets, meta },
             { headers: { Authorization: `Bearer ${token}` } }
           );
@@ -747,7 +747,7 @@ const UploadCenter = () => {
         // ✅ GENEALOGY SHEETS (THIS WAS MISSING)
         if (genealogySheets.length > 0) {
           await axios.post(
-            "http://localhost:5000/api/uploadGenealogy",
+            "https://imediareports.onrender.com/api/uploadGenealogy",
             { sheets: genealogySheets, meta },
             { headers: { Authorization: `Bearer ${token}` } }
           );

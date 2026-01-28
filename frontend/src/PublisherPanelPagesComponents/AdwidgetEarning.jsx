@@ -7,7 +7,7 @@ import {
 } from "recharts";
 
 const COLORS = ["#00C49F", "#FFBB28", "#0088FE", "#FF8042"];
-const API_URL = "http://localhost:5000/api/getalldata";
+const API_URL = "https://imediareports.onrender.com/api/getalldata";
 const JWT_KEY = "jwt";
 const REVENUE_MULT = 1000;
 

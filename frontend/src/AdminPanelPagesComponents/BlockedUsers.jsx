@@ -19,7 +19,7 @@ const BlockedUsers = () => {
   const fetchBlockedUsers = async () => {
     try {
       const token = JSON.parse(localStorage.getItem("jwt"))?.token;
-      const res = await axios.get("http://localhost:5000/api/blocked-users", {
+      const res = await axios.get("https://imediareports.onrender.com/api/blocked-users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBlockedUsers(res.data.blockedUsers || []);

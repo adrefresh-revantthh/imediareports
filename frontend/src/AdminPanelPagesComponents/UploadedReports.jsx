@@ -20,7 +20,7 @@ const UploadedReports = () => {
           return;
         }
 
-        const res = await axios.get("http://localhost:5000/api/getalldata", {
+        const res = await axios.get("https://imediareports.onrender.com/api/getalldata", {
           headers: { Authorization: `Bearer ${token}` },
         });
 

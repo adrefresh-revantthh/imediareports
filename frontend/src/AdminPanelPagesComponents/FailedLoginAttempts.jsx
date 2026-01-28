@@ -34,7 +34,7 @@ const FailedLoginAttempts = () => {
       try {
         const token = JSON.parse(localStorage.getItem("jwt"))?.token;
 
-        const res = await axios.get("http://localhost:5000/api/login-history", {
+        const res = await axios.get("https://imediareports.onrender.com/api/login-history", {
           headers: { Authorization: `Bearer ${token}` },
         });
 

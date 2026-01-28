@@ -58,7 +58,7 @@ const Login = () => {
       setLoading(true);
       setMessage("");
 
-      const res = await axios.post("http://localhost:5000/api/login", { email, password });
+      const res = await axios.post("https://imediareports.onrender.com/api/login", { email, password });
       // Persist JWT
       localStorage.setItem("jwt", JSON.stringify(res.data));
 

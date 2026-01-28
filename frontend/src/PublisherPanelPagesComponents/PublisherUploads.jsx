@@ -286,7 +286,7 @@ const Uploads = () => {
         if (!publisherName) return;
 
         const res = await axios.get(
-          "http://localhost:5000/api/getalldata"
+          "https://imediareports.onrender.com/api/getalldata"
         );
 
         const allSheets = [

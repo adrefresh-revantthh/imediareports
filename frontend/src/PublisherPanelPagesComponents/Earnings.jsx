@@ -725,7 +725,7 @@ export default function Earnings() {
       const user = JSON.parse(localStorage.getItem("jwt"))?.user;
       if (!user?.name) return;
 
-      const res = await axios.get("http://localhost:5000/api/getalldata");
+      const res = await axios.get("https://imediareports.onrender.com/api/getalldata");
       const allSheets = res?.data?.sheets || [];
 
       /* ===== 1️⃣ Publisher sheets ===== */
