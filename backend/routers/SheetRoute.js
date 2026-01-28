@@ -103,7 +103,7 @@ import {
   getPublishers,
   getExecutives,
   heartbeat,
-} from "../controllers/SheetController.js";
+} from "../controllers/sheetController.js";
 
 import { verifyToken } from "../authMiddleware/authMiddleware.js";
 import { Sheet,GenealogySheet } from "../models/SheetModel.js";
