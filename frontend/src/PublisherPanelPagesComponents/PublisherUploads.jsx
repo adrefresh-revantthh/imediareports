@@ -1,575 +1,682 @@
 
-
-// import React, { useEffect, useState } from "react";
-// import { styles } from "../styles";
+// import React, { useEffect, useMemo, useState } from "react";
 // import axios from "axios";
-// import { useNavigate } from "react-router-dom";
+// import { Line } from "react-chartjs-2";
+// import "chart.js/auto";
+// import "./reports.css";
 
-// const Uploads = () => {
-//   const [campaigns, setCampaigns] = useState([]);
-//   const [totals, setTotals] = useState({ impressions: 0, clicks: 0, revenue: 0 });
-//   const navigate = useNavigate();
+// /* ================= HELPERS ================= */
+
+// const safeNumber = (v) => {
+//   if (v === null || v === undefined || v === "") return 0;
+//   if (typeof v === "string") return Number(v.replace(/[$,%]/g, ""));
+//   return Number(v);
+// };
+
+// const getSpend = (row) =>
+//   safeNumber(
+//     row.Spend ??
+//       row["Spend"] ??
+//       row["spend"] ??
+//       row["Spend($)"] ??
+//       row["Spend ($)"] ??
+//       row["Total Spend"] ??
+//       row["Total Spend ($)"]
+//   );
+
+// const excelDateToJSDate = (serial) => {
+//   if (!serial || isNaN(serial)) return null;
+//   const epoch = new Date(Date.UTC(1899, 11, 30));
+//   return new Date(epoch.getTime() + serial * 86400000);
+// };
+
+// const parseRowDate = (val) => {
+//   if (!val) return null;
+//   if (typeof val === "number") return excelDateToJSDate(val);
+//   const d = new Date(val);
+//   return isNaN(d.getTime()) ? null : d;
+// };
+
+// const formatDate = (date) =>
+//   date
+//     ? date.toLocaleDateString("en-GB", {
+//         day: "2-digit",
+//         month: "short",
+//         year: "numeric",
+//       })
+//     : "";
+
+// /* ================= METRIC CONFIG ================= */
+
+// const METRIC_CONFIG = {
+//   video: {
+//     metrics: ["Impressions", "VCR", "Spend"],
+//     graph: "Impressions",
+//   },
+//   display: {
+//     metrics: ["Impressions", "Clicks", "CTR", "NP Convs", "Spend"],
+//     graph: "Clicks",
+//   },
+//   ott: {
+//     metrics: ["Impressions", "Clicks", "CTR", "NP Convs", "Spend"],
+//     graph: "Clicks",
+//   },
+//   adwidget: {
+//     metrics: ["Impressions", "Clicks", "CTR", "NP Convs", "Spend"],
+//     graph: "Clicks",
+//   },
+//   summary: {
+//     metrics: ["Spend", "Total Budget", "Remaining"],
+//     graph: null,
+//   },
+// };
+
+// /* ================= COMPONENT ================= */
+
+// export default function PublisherReports() {
+//   const jwt = JSON.parse(localStorage.getItem("jwt"));
+//   const token = jwt?.token;
+
+//   /* UI STATE */
+//   const [buildMode, setBuildMode] = useState(false);
+//   const [customFrom, setCustomFrom] = useState("");
+//   const [customTo, setCustomTo] = useState("");
+//   const [showGraph, setShowGraph] = useState(false);
+
+//   /* DATA */
+//   const [allSheets, setAllSheets] = useState([]);
+
+//   /* FILTERS */
+//   const [selectedAdvertiser, setSelectedAdvertiser] = useState("All");
+//   const [selectedAdType, setSelectedAdType] = useState("All");
+
+//   /* OUTPUT */
+//   const [summary, setSummary] = useState(null);
+//   const [dailyGraph, setDailyGraph] = useState([]);
+//   const [reportTitle, setReportTitle] = useState("");
+
+//   /* ================= FETCH SHEETS ================= */
 
 //   useEffect(() => {
-//     const fetchUploads = async () => {
-//       try {
-//         const storedPublisher = JSON.parse(localStorage.getItem("jwt")).user.name
-//         if (!storedPublisher) {
-//           console.warn("⚠️ No publisher name found in localStorage");
-//           return;
+//     axios
+//       .get("https://imediareports.onrender.com/api/getallsheets", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       })
+//       .then((res) => {
+//         console.log("✅ Sheets fetched:", res.data);
+//         setAllSheets(res.data || []);
+//       })
+//       .catch((err) => console.error("❌ Sheet fetch error:", err));
+//   }, [token]);
+
+//   /* ================= DROPDOWNS ================= */
+
+//   const advertisers = useMemo(() => {
+//     const list = allSheets.map((s) => s.advertiser).filter(Boolean);
+//     return ["All", ...new Set(list)];
+//   }, [allSheets]);
+
+//   const adTypes = useMemo(() => {
+//     const list = allSheets.map((s) => s.name).filter(Boolean);
+//     return ["All", ...new Set(list)];
+//   }, [allSheets]);
+
+//   /* ================= RUN REPORT ================= */
+
+//   const runReport = () => {
+//     if (!customFrom || !customTo) {
+//       alert("Select start & end date");
+//       return;
+//     }
+
+//     const from = new Date(customFrom);
+//     const to = new Date(customTo);
+
+//     const adTypeKey = selectedAdType
+//       .toLowerCase()
+//       .replace(/\s+/g, "")
+//       .replace("-", "");
+
+//     const config = METRIC_CONFIG[adTypeKey];
+//     if (!config) {
+//       console.warn("❌ No metric config for:", adTypeKey);
+//       return;
+//     }
+
+//     const filteredSheets = allSheets.filter((sheet) => {
+//       if (
+//         selectedAdvertiser !== "All" &&
+//         sheet.advertiser !== selectedAdvertiser
+//       )
+//         return false;
+
+//       if (selectedAdType !== "All" && sheet.name !== selectedAdType)
+//         return false;
+
+//       return true;
+//     });
+
+//     console.log("📂 Filtered Sheets:", filteredSheets);
+
+//     const records = filteredSheets.flatMap((s) => s.data || []);
+//     console.log("📦 Records:", records.length);
+
+//     let totals = {};
+//     let dailyMap = {};
+
+//     records.forEach((row) => {
+//       const rowDate = parseRowDate(row.Date || row.date);
+
+//       // 🔥 DATE FILTER ONLY IF DATE EXISTS
+//       if (rowDate && (rowDate < from || rowDate > to)) return;
+
+//       const key = rowDate
+//         ? rowDate.toISOString().slice(0, 10)
+//         : "summary";
+
+//       if (!dailyMap[key]) dailyMap[key] = { date: key };
+
+//       config.metrics.forEach((m) => {
+//         let value = 0;
+
+//         switch (m) {
+//           case "Impressions":
+//             value = safeNumber(row.Impressions);
+//             break;
+//           case "Clicks":
+//             value = safeNumber(row.Clicks);
+//             break;
+//           case "VCR":
+//             value = safeNumber(row.VCR);
+//             break;
+//           case "NP Convs":
+//             value = safeNumber(row["NP Convs"]);
+//             break;
+//           case "Spend":
+//             value = getSpend(row);
+//             break;
+//           case "Total Budget":
+//             value = safeNumber(row["Total Budget"]);
+//             break;
+//           case "Remaining":
+//             value = safeNumber(row.Remaining);
+//             break;
+//           default:
+//             break;
 //         }
 
-//         const res = await axios.get("http://localhost:5000/api/getalldata");
-// console.log(res,"results");
+//         if (adTypeKey === "summary") {
+//           totals[m] = value;
+//         } else {
+//           totals[m] = (totals[m] || 0) + value;
+//         }
 
-//         // ✅ Combine sheets and genealogySheets
-//         const allSheets = [
-//           ...(res.data?.sheets || []),
-//           ...(res.data?.genealogySheets || []),
-//         ];
+//         dailyMap[key][m] = (dailyMap[key][m] || 0) + value;
+//       });
+//     });
 
-//         // ✅ Filter only this publisher’s data
-//         const filtered = allSheets.filter(
-//           (sheet) =>
-//             sheet.publisher &&
-//             sheet.publisher.toLowerCase() === storedPublisher.toLowerCase()
-//         );
+//     if (config.metrics.includes("CTR")) {
+//       totals.CTR = totals.Impressions
+//         ? ((totals.Clicks / totals.Impressions) * 100).toFixed(2)
+//         : "0.00";
+//     }
 
-//         const publisherMap = {};
+//     console.log("📊 FINAL TOTALS:", totals);
 
-//         filtered.forEach((sheet) => {
-//           const advertiser = sheet.advertiser || "Unknown Advertiser";
-//           const key = advertiser;
-
-//           if (!publisherMap[key]) {
-//             publisherMap[key] = {
-//               Campaign: `${storedPublisher} | ${advertiser}`,
-//               Views: 0,
-//               Clicks: 0,
-//               Revenue: 0,
-//               sheetIds: [],
-//             };
-//           }
-
-//           publisherMap[key].sheetIds.push(sheet._id);
-
-//           (sheet.data || []).forEach((row) => {
-//             if (typeof row !== "object" || row === null) return;
-
-//             const normalized = Object.fromEntries(
-//               Object.entries(row).map(([key, value]) => [
-//                 key.trim().toLowerCase(),
-//                 value,
-//               ])
-//             );
-
-//             const impressions =
-//               parseFloat(normalized.impressions) ||
-//               parseFloat(normalized["impression"]) ||
-//               parseFloat(normalized.views) ||
-//               0;
-//             const clicks =
-//               parseFloat(normalized.clicks) || parseFloat(normalized["click"]) || 0;
-//             const cpm =
-//               parseFloat(normalized.cpm) ||
-//               parseFloat(normalized["cost per mille"]) ||
-//               0;
-//             const cpc = parseFloat(normalized.cpc) || 0;
-
-//             let revenue = 0;
-//             if (cpc > 0 && clicks > 0) revenue = clicks * cpc;
-//             else if (cpm > 0 && impressions > 0)
-//               revenue = (impressions / 1000) * cpm;
-//             else revenue = (impressions / 1000) * 1.5;
-
-//             publisherMap[key].Views += impressions;
-//             publisherMap[key].Clicks += clicks;
-//             publisherMap[key].Revenue += revenue;
-//           });
-//         });
-
-//         const finalData = Object.values(publisherMap);
-
-//         // ✅ Totals
-//         const totalImpressions = finalData.reduce((sum, d) => sum + d.Views, 0);
-//         const totalClicks = finalData.reduce((sum, d) => sum + d.Clicks, 0);
-//         const totalRevenue = finalData.reduce((sum, d) => sum + d.Revenue, 0);
-
-//         setTotals({
-//           impressions: totalImpressions,
-//           clicks: totalClicks,
-//           revenue: totalRevenue.toFixed(2),
-//         });
-//         setCampaigns(finalData);
-//       } catch (error) {
-//         console.error("❌ Error fetching uploads:", error);
-//       }
-//     };
-
-//     fetchUploads();
-//   }, []);
-
-//   const handleView = (sheetIds) => {
-//     navigate("/viewuploads", { state: { sheetIds } });
+//     setSummary(totals);
+//     setDailyGraph(Object.values(dailyMap));
+//     setReportTitle(
+//       `${selectedAdType.toUpperCase()} REPORT` +
+//         (selectedAdvertiser !== "All"
+//           ? ` – ${selectedAdvertiser}`
+//           : "")
+//     );
 //   };
 
-//   const handleDownload = (sheetIds) => {
-//     navigate("/downloadsheets", { state: { sheetIds } });
-//   };
+//   /* ================= UI ================= */
 
-//   return (
-//     <div style={{ ...styles.card, padding: "30px" }}>
-//       <h3 style={{ marginBottom: "20px" }}>
-//         📁 {localStorage.getItem("publisherName") || "Publisher"} Campaigns
-//       </h3>
-
-//       {/* ✅ Summary Section */}
-//       <div
-//         style={{
-//           display: "flex",
-//           justifyContent: "center",
-//           gap: "20px",
-//           marginBottom: "25px",
-//           flexWrap: "wrap",
-//         }}
-//       >
-//         <div style={summaryCard}>
-//           <h4>Total Impressions</h4>
-//           <p style={{ color: "#007bff", fontWeight: "bold" }}>
-//             {totals.impressions.toLocaleString()}
-//           </p>
-//         </div>
-//         <div style={summaryCard}>
-//           <h4>Total Clicks</h4>
-//           <p style={{ color: "#ff4d4f", fontWeight: "bold" }}>
-//             {totals.clicks.toLocaleString()}
-//           </p>
-//         </div>
-//         <div style={summaryCard}>
-//           <h4>Total Revenue</h4>
-//           <p style={{ color: "#007bff", fontWeight: "bold" }}>
-//             ${totals.revenue}
-//           </p>
+//   if (!buildMode) {
+//     return (
+//       <div className="report-page">
+//         <div className="report-card">
+//           <h2>Need to run a report?</h2>
+//           <button className="primary-btn" onClick={() => setBuildMode(true)}>
+//             + Build a new report
+//           </button>
 //         </div>
 //       </div>
+//     );
+//   }
 
-//       {/* ✅ Table Section */}
-//       <div style={styles.tableWrapper}>
-//         <table style={styles.table}>
-//           <thead>
-//             <tr>
-//               <th style={styles.th}>Campaign (Publisher | Advertiser)</th>
-//               <th style={styles.th}>Impressions</th>
-//               <th style={styles.th}>Clicks</th>
-//               <th style={{ ...styles.th, textAlign: "center" }}>Revenue ($)</th>
-//               <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
-//             </tr>
-//           </thead>
+//   const adTypeKey = selectedAdType
+//     .toLowerCase()
+//     .replace(/\s+/g, "")
+//     .replace("-", "");
 
-//           <tbody>
-//             {campaigns.length > 0 ? (
-//               campaigns.map((row, i) => (
-//                 <tr key={i}>
-//                   <td style={styles.td}>{row.Campaign}</td>
-//                   <td style={styles.td}>{row.Views.toLocaleString()}</td>
-//                   <td style={styles.td}>{row.Clicks.toLocaleString()}</td>
-//                   <td style={{ ...styles.td, textAlign: "center" }}>
-//                     ${row.Revenue.toFixed(2)}
-//                   </td>
-//                   <td style={{ ...styles.td, textAlign: "center" }}>
-//                     <button
-//                       onClick={() => handleView(row.sheetIds)}
-//                       style={{
-//                         ...btn,
-//                         background: "#007bff",
-//                       }}
-//                     >
-//                       View
-//                     </button>
+//   return (
+//     <div className="report-page">
+//       <div className="report-card">
+//         <h3>{reportTitle || "Publisher Reports"}</h3>
 
-//                     <button
-//                       onClick={() => handleDownload(row.sheetIds)}
-//                       style={{
-//                         ...btn,
-//                         background: "#ff4d4f",
-//                       }}
-//                     >
-//                       Download
-//                     </button>
-//                   </td>
-//                 </tr>
-//               ))
-//             ) : (
-//               <tr>
-//                 <td colSpan="5" style={{ textAlign: "center", padding: "15px" }}>
-//                   No campaigns found for this publisher.
-//                 </td>
-//               </tr>
-//             )}
-//           </tbody>
-//         </table>
+//         <div className="filter-bar">
+//           <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} />
+//           <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} />
+
+//           <select value={selectedAdvertiser} onChange={(e) => setSelectedAdvertiser(e.target.value)}>
+//             {advertisers.map((a) => (
+//               <option key={a}>{a}</option>
+//             ))}
+//           </select>
+
+//           <select value={selectedAdType} onChange={(e) => setSelectedAdType(e.target.value)}>
+//             {adTypes.map((t) => (
+//               <option key={t}>{t}</option>
+//             ))}
+//           </select>
+
+//           <label>
+//             <input type="checkbox" checked={showGraph} onChange={() => setShowGraph(!showGraph)} />
+//             Show Graph
+//           </label>
+
+//           <button className="primary-btn" onClick={runReport}>
+//             View Report
+//           </button>
+//         </div>
+
+//         {/* ================= METRIC CARDS ================= */}
+//         {summary && (
+//           <div
+//             style={{
+//               display: "grid",
+//               gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+//               gap: "12px",
+//               marginTop: "16px",
+//             }}
+//           >
+//             {METRIC_CONFIG[adTypeKey].metrics.map((m) => (
+//               <div
+//                 key={m}
+//                 style={{
+//                   padding: "14px",
+//                   background: "#f5f7f9",
+//                   borderRadius: "0px",
+//                   fontWeight: 600,
+//                 }}
+//               >
+//                 <div style={{ fontSize: "12px", opacity: 0.7 }}>{m}</div>
+//                 <div style={{ fontSize: "20px", marginTop: "4px" }}>
+//                   {summary[m]}
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         )}
+
+//         {/* ================= GRAPH ================= */}
+//         {showGraph &&
+//           METRIC_CONFIG[adTypeKey]?.graph &&
+//           dailyGraph.length > 0 && (
+//             <Line
+//               data={{
+//                 labels: dailyGraph.map((d) =>
+//                   d.date === "summary"
+//                     ? "Summary"
+//                     : formatDate(new Date(d.date))
+//                 ),
+//                 datasets: [
+//                   {
+//                     label: METRIC_CONFIG[adTypeKey].graph,
+//                     data: dailyGraph.map(
+//                       (d) => d[METRIC_CONFIG[adTypeKey].graph]
+//                     ),
+//                     borderColor: "#007f8c",
+//                     tension: 0.3,
+//                   },
+//                 ],
+//               }}
+//             />
+//           )}
 //       </div>
 //     </div>
 //   );
-// };
+// }
 
-// // ✅ Reusable Summary Card Style
-// const summaryCard = {
-//   backgroundColor: "#fff",
-//   borderRadius: "12px",
-//   padding: "15px 25px",
-//   boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-//   textAlign: "center",
-//   minWidth: "200px",
-// };
-
-// const btn = {
-//   padding: "6px 12px",
-//   marginRight: "6px",
-//   color: "#fff",
-//   border: "none",
-//   borderRadius: "6px",
-//   cursor: "pointer",
-//   fontWeight: 500,
-//   transition: "all 0.2s ease",
-// };
-
-// export default Uploads;
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { styles } from "../styles";
+import { Line } from "react-chartjs-2";
+import "chart.js/auto";
+import "./reports.css";
 
-/* ===== HELPERS ===== */
-const normalize = (s = "") =>
-  s.toLowerCase().trim().replace(/\s+/g, "");
+/* ================= HELPERS ================= */
 
-const parseDate = (value) => {
-  if (!value) return null;
-  const d = new Date(value);
+const safeNumber = (v) => {
+  if (v === null || v === undefined || v === "") return 0;
+  if (typeof v === "string") return Number(v.replace(/[$,%]/g, ""));
+  return Number(v);
+};
+
+/* -------- DATE NORMALIZATION (ALL FORMATS) -------- */
+
+const excelDateToJSDate = (serial) => {
+  if (!serial || isNaN(serial)) return null;
+  const epoch = new Date(Date.UTC(1899, 11, 30));
+  return new Date(epoch.getTime() + serial * 86400000);
+};
+
+const parseRowDate = (val) => {
+  if (!val) return null;
+
+  // Excel serial
+  if (typeof val === "number") return excelDateToJSDate(val);
+
+  if (typeof val === "string") {
+    // dd-mm-yyyy or mm-dd-yyyy
+    if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(val)) {
+      const [a, b, y] = val.split("-");
+      return new Date(`${y}-${a.padStart(2, "0")}-${b.padStart(2, "0")}`);
+    }
+
+    // Month name formats
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  const d = new Date(val);
   return isNaN(d.getTime()) ? null : d;
 };
 
-const getRowDate = (row) => {
-  const possibleKeys = ["date", "day", "createddate", "timestamp"];
-  for (const key of possibleKeys) {
-    if (row[key]) {
-      const d = new Date(row[key]);
-      if (!isNaN(d.getTime())) return d;
-    }
-  }
-  return null;
-};
+const formatDate = (date) =>
+  date
+    ? date.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "";
 
-const Uploads = () => {
-  const navigate = useNavigate();
+/* -------- SMART SPEND CALCULATION -------- */
 
-  const publisherName = JSON.parse(localStorage.getItem("jwt"))?.user?.name;
+const getSpend = (row) => {
+  // Known keys
+  const known =
+    row.Spend ??
+    row["Spend"] ??
+    row["spend"] ??
+    row["Spend($)"] ??
+    row["Spend ($)"] ??
+    row["Total Spend"] ??
+    row["Media Cost"] ??
+    row["Cost"];
 
-  /* ===== STATE ===== */
-  const [advertisers, setAdvertisers] = useState([]);
-  const [selectedAdvertiser, setSelectedAdvertiser] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  if (known !== undefined) return safeNumber(known);
 
-  const [campaigns, setCampaigns] = useState([]);
-  const [totals, setTotals] = useState({
-    impressions: 0,
-    clicks: 0,
-    revenue: 0,
+  // Fallback: detect highest numeric value (excluding impressions/clicks)
+  let max = 0;
+  Object.entries(row).forEach(([k, v]) => {
+    if (/impression|click|ctr|vcr/i.test(k)) return;
+    const num = safeNumber(v);
+    if (num > max) max = num;
   });
 
-  /* ===== FETCH ADVERTISER LIST ===== */
+  return max;
+};
+
+/* ================= METRIC CONFIG ================= */
+
+const METRIC_CONFIG = {
+  video: {
+    metrics: ["Impressions", "VCR", "Spend"],
+    graph: "Impressions",
+  },
+  display: {
+    metrics: ["Impressions", "Clicks", "CTR", "NP Convs", "Spend"],
+    graph: "Clicks",
+  },
+  ott: {
+    metrics: ["Impressions", "Clicks", "CTR", "NP Convs", "Spend"],
+    graph: "Clicks",
+  },
+  adwidget: {
+    metrics: ["Impressions", "Clicks", "Spend"],
+    graph: "Clicks",
+  },
+  summary: {
+    metrics: ["Total Budget", "Spend", "Remaining"],
+    graph: null,
+  },
+};
+
+/* ================= COMPONENT ================= */
+
+export default function PublisherReports() {
+  const jwt = JSON.parse(localStorage.getItem("jwt"));
+  const token = jwt?.token;
+
+  /* UI STATE */
+  const [buildMode, setBuildMode] = useState(false);
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+  const [showGraph, setShowGraph] = useState(false);
+
+  /* DATA */
+  const [allSheets, setAllSheets] = useState([]);
+
+  /* FILTERS */
+  const [selectedAdvertiser, setSelectedAdvertiser] = useState("All");
+  const [selectedAdType, setSelectedAdType] = useState("All");
+
+  /* OUTPUT */
+  const [summary, setSummary] = useState(null);
+  const [dailyGraph, setDailyGraph] = useState([]);
+  const [reportTitle, setReportTitle] = useState("");
+
+  /* ================= FETCH SHEETS ================= */
+
   useEffect(() => {
-    const fetchAdvertisers = async () => {
-      try {
-        if (!publisherName) return;
+    axios
+      .get("https://imediareports.onrender.com/api/getallsheets", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setAllSheets(res.data || []))
+      .catch((err) => console.error("❌ Sheet fetch error", err));
+  }, [token]);
 
-        const res = await axios.get(
-          "https://imediareports.onrender.com/api/getalldata"
-        );
+  /* ================= DROPDOWNS ================= */
 
-        const allSheets = [
-          ...(res.data?.sheets || []),
-          ...(res.data?.genealogySheets || []),
-        ];
+  const advertisers = useMemo(
+    () => ["All", ...new Set(allSheets.map((s) => s.advertiser).filter(Boolean))],
+    [allSheets]
+  );
 
-        const publisherSheets = allSheets.filter(
-          (s) =>
-            normalize(s.publisher) === normalize(publisherName)
-        );
+  const adTypes = useMemo(
+    () => ["All", ...new Set(allSheets.map((s) => s.name).filter(Boolean))],
+    [allSheets]
+  );
 
-        const advertiserList = [
-          ...new Set(
-            publisherSheets.map(
-              (s) => s.advertiser || "Unknown Advertiser"
-            )
-          ),
-        ];
+  /* ================= RUN REPORT ================= */
 
-        setAdvertisers(advertiserList);
-      } catch (err) {
-        console.error("❌ Advertiser fetch error:", err);
-      }
-    };
+  const runReport = () => {
+    if (!customFrom || !customTo) {
+      alert("Select start & end date");
+      return;
+    }
 
-    fetchAdvertisers();
-  }, [publisherName]);
+    const from = new Date(customFrom);
+    const to = new Date(customTo);
 
-  /* ===== RUN REPORT ===== */
-  const handleViewReport = async () => {
-    try {
-      if (!selectedAdvertiser || !fromDate || !toDate) {
-        alert("Please select advertiser and date range");
-        return;
-      }
+    const adTypeKey = selectedAdType
+      .toLowerCase()
+      .replace(/[\s-_]/g, "");
 
-      const from = parseDate(fromDate);
-      const to = parseDate(toDate);
+    const config = METRIC_CONFIG[adTypeKey];
+    if (!config) return;
 
-      const res = await axios.get(
-        "http://localhost:5000/api/getalldata"
-      );
+    const filteredSheets = allSheets.filter((s) => {
+      if (selectedAdvertiser !== "All" && s.advertiser !== selectedAdvertiser)
+        return false;
+      if (selectedAdType !== "All" && s.name !== selectedAdType) return false;
+      return true;
+    });
 
-      const allSheets = [
-        ...(res.data?.sheets || []),
-        ...(res.data?.genealogySheets || []),
-      ];
+    const records = filteredSheets.flatMap((s) => s.data || []);
 
-      const filteredSheets = allSheets.filter(
-        (sheet) =>
-          normalize(sheet.publisher) === normalize(publisherName) &&
-          normalize(sheet.advertiser) ===
-            normalize(selectedAdvertiser)
-      );
+    let totals = {};
+    let dailyMap = {};
 
-      const reportMap = {};
+    records.forEach((row) => {
+      const rowDate = parseRowDate(row.Date || row.date);
 
-      filteredSheets.forEach((sheet) => {
-        const key = sheet.advertiser;
+      // Apply date filter ONLY if date exists
+      if (rowDate && (rowDate < from || rowDate > to)) return;
 
-        if (!reportMap[key]) {
-          reportMap[key] = {
-            Campaign: `${publisherName} | ${key}`,
-            Views: 0,
-            Clicks: 0,
-            Revenue: 0,
-            sheetIds: [],
-          };
+      const spend = getSpend(row);
+
+      const key = rowDate
+        ? rowDate.toISOString().slice(0, 10)
+        : "summary";
+
+      if (!dailyMap[key]) dailyMap[key] = { date: key };
+
+      config.metrics.forEach((m) => {
+        let value = 0;
+
+        switch (m) {
+          case "Impressions":
+            value = safeNumber(row.Impressions);
+            break;
+          case "Clicks":
+            value = safeNumber(row.Clicks);
+            break;
+          case "VCR":
+            value = safeNumber(row.VCR);
+            break;
+          case "NP Convs":
+            value = safeNumber(row["NP Convs"]);
+            break;
+          case "Spend":
+            value = spend;
+            break;
+          case "Total Budget":
+            value = safeNumber(row["Total Budget"]);
+            break;
+          case "Remaining":
+            value = safeNumber(row["Total Budget"]) - spend;
+            break;
+          default:
+            break;
         }
 
-        reportMap[key].sheetIds.push(sheet._id);
+        if (adTypeKey === "summary") totals[m] = value;
+        else totals[m] = (totals[m] || 0) + value;
 
-        (sheet.data || []).forEach((row) => {
-          const rowDate = getRowDate(
-            Object.fromEntries(
-              Object.entries(row).map(([k, v]) => [
-                k.toLowerCase(),
-                v,
-              ])
-            )
-          );
-
-          if (!rowDate || rowDate < from || rowDate > to)
-            return;
-
-          const impressions =
-            Number(row.impressions || row.views || 0) || 0;
-          const clicks =
-            Number(row.clicks || row.click || 0) || 0;
-          const cpm = Number(row.cpm || 0);
-          const cpc = Number(row.cpc || 0);
-
-          let revenue = 0;
-          if (cpc > 0) revenue = clicks * cpc;
-          else if (cpm > 0)
-            revenue = (impressions / 1000) * cpm;
-          else revenue = (impressions / 1000) * 1.5;
-
-          reportMap[key].Views += impressions;
-          reportMap[key].Clicks += clicks;
-          reportMap[key].Revenue += revenue;
-        });
+        dailyMap[key][m] = (dailyMap[key][m] || 0) + value;
       });
+    });
 
-      const finalData = Object.values(reportMap);
-
-      setCampaigns(finalData);
-
-      setTotals({
-        impressions: finalData.reduce(
-          (a, b) => a + b.Views,
-          0
-        ),
-        clicks: finalData.reduce(
-          (a, b) => a + b.Clicks,
-          0
-        ),
-        revenue: finalData
-          .reduce((a, b) => a + b.Revenue, 0)
-          .toFixed(2),
-      });
-    } catch (err) {
-      console.error("❌ Report error:", err);
+    if (config.metrics.includes("CTR")) {
+      totals.CTR = totals.Impressions
+        ? ((totals.Clicks / totals.Impressions) * 100).toFixed(2)
+        : "0.00";
     }
+
+    setSummary(totals);
+    setDailyGraph(Object.values(dailyMap));
+    setReportTitle(
+      `${selectedAdType.toUpperCase()} REPORT` +
+        (selectedAdvertiser !== "All"
+          ? ` – ${selectedAdvertiser}`
+          : "")
+    );
   };
 
-  const handleView = (sheetIds) =>
-    navigate("/viewuploads", { state: { sheetIds } });
+  /* ================= UI ================= */
 
-  const handleDownload = (sheetIds) =>
-    navigate("/downloadsheets", { state: { sheetIds } });
+  if (!buildMode) {
+    return (
+      <div className="report-page">
+        <div className="report-card">
+          <h2>Need to run a report?</h2>
+          <button className="primary-btn" onClick={() => setBuildMode(true)}>
+            + Build a new report
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const adTypeKey = selectedAdType
+    .toLowerCase()
+    .replace(/[\s-_]/g, "");
 
   return (
-    <div style={{ ...styles.card, padding: "30px" }}>
-      <h3>📊 Run Advertiser Reports</h3>
+    <div className="report-page">
+      <div className="report-card">
+        <h3>{reportTitle || "Publisher Reports"}</h3>
 
-      {/* ===== FILTER BAR ===== */}
-      <div style={filterBar}>
-        <select
-          value={selectedAdvertiser}
-          onChange={(e) => setSelectedAdvertiser(e.target.value)}
-          style={filterInput}
-        >
-          <option value="">Select Advertiser</option>
-          {advertisers.map((a, i) => (
-            <option key={i} value={a}>
-              {a}
-            </option>
-          ))}
-        </select>
+        <div className="filter-bar">
+          <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} />
+          <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} />
 
-        <input
-          type="date"
-          value={fromDate}
-          onChange={(e) => setFromDate(e.target.value)}
-          style={filterInput}
-        />
-
-        <input
-          type="date"
-          value={toDate}
-          onChange={(e) => setToDate(e.target.value)}
-          style={filterInput}
-        />
-
-        <button style={viewBtn} onClick={handleViewReport}>
-          View Report
-        </button>
-      </div>
-
-      {/* ===== SUMMARY ===== */}
-      {campaigns.length > 0 && (
-        <div style={summaryRow}>
-          <Summary title="Impressions" value={totals.impressions} />
-          <Summary title="Clicks" value={totals.clicks} />
-          <Summary
-            title="Revenue"
-            value={`$${totals.revenue}`}
-          />
-        </div>
-      )}
-
-      {/* ===== TABLE ===== */}
-      {campaigns.length > 0 && (
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.th}>Campaign</th>
-              <th style={styles.th}>Impressions</th>
-              <th style={styles.th}>Clicks</th>
-              <th style={styles.th}>Revenue</th>
-              <th style={styles.th}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {campaigns.map((row, i) => (
-              <tr key={i}>
-                <td style={styles.td}>{row.Campaign}</td>
-                <td style={styles.td}>{row.Views}</td>
-                <td style={styles.td}>{row.Clicks}</td>
-                <td style={styles.td}>
-                  ${row.Revenue.toFixed(2)}
-                </td>
-                <td style={styles.td}>
-                  <button
-                    style={{ ...btn, background: "#007bff" }}
-                    onClick={() => handleView(row.sheetIds)}
-                  >
-                    View
-                  </button>
-                  <button
-                    style={{ ...btn, background: "#ff4d4f" }}
-                    onClick={() =>
-                      handleDownload(row.sheetIds)
-                    }
-                  >
-                    Download
-                  </button>
-                </td>
-              </tr>
+          <select value={selectedAdvertiser} onChange={(e) => setSelectedAdvertiser(e.target.value)}>
+            {advertisers.map((a) => (
+              <option key={a}>{a}</option>
             ))}
-          </tbody>
-        </table>
-      )}
+          </select>
+
+          <select value={selectedAdType} onChange={(e) => setSelectedAdType(e.target.value)}>
+            {adTypes.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+
+          <label>
+            <input type="checkbox" checked={showGraph} onChange={() => setShowGraph(!showGraph)} />
+            Show Graph
+          </label>
+
+          <button className="primary-btn" onClick={runReport}>
+            View Report
+          </button>
+        </div>
+
+        {/* ===== METRIC CARDS (UNCHANGED) ===== */}
+        {summary && (
+          <div className="summary-row">
+            {METRIC_CONFIG[adTypeKey].metrics.map((m) => (
+              <div key={m} className="summary-box">
+                <h4>{m}</h4>
+                <p>{summary[m]}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ===== GRAPH (UNCHANGED) ===== */}
+        {showGraph &&
+          METRIC_CONFIG[adTypeKey]?.graph &&
+          dailyGraph.length > 0 && (
+            <Line
+              data={{
+                labels: dailyGraph.map((d) =>
+                  d.date === "summary"
+                    ? "Summary"
+                    : formatDate(new Date(d.date))
+                ),
+                datasets: [
+                  {
+                    label: METRIC_CONFIG[adTypeKey].graph,
+                    data: dailyGraph.map(
+                      (d) => d[METRIC_CONFIG[adTypeKey].graph]
+                    ),
+                    borderColor: "#007f8c",
+                    tension: 0.3,
+                  },
+                ],
+              }}
+            />
+          )}
+      </div>
     </div>
   );
-};
-
-/* ===== UI HELPERS ===== */
-const Summary = ({ title, value }) => (
-  <div style={summaryCard}>
-    <h4>{title}</h4>
-    <p>{value}</p>
-  </div>
-);
-
-/* ===== STYLES ===== */
-const filterBar = {
-  display: "flex",
-  gap: "12px",
-  marginBottom: "25px",
-  flexWrap: "wrap",
-};
-
-const filterInput = {
-  padding: "8px 12px",
-  borderRadius: "6px",
-};
-
-const viewBtn = {
-  padding: "8px 16px",
-  borderRadius: "6px",
-  border: "none",
-  background: "#01303f",
-  color: "#fff",
-  cursor: "pointer",
-  fontWeight: "600",
-};
-
-const summaryRow = {
-  display: "flex",
-  gap: "20px",
-  marginBottom: "25px",
-  flexWrap: "wrap",
-};
-
-const summaryCard = {
-  background: "#fff",
-  padding: "15px 25px",
-  borderRadius: "12px",
-  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-  minWidth: "180px",
-  textAlign: "center",
-};
-
-const btn = {
-  padding: "6px 12px",
-  marginRight: "6px",
-  border: "none",
-  borderRadius: "6px",
-  color: "#fff",
-  cursor: "pointer",
-};
-
-export default Uploads;
+}

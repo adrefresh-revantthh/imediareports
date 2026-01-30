@@ -132,14 +132,17 @@ import AdWidget from "./Advertise";
 import VideoReport from "./NewVideoReport";
 import AdvertiserDisplayData from "../DisplayData";
 import DailyReports from "../DailyReportsofAll";
-
+import Dashboard from "./Dashboard"
+import AdvertiserDashboard from "./Advertiser-Detailed"
 const AdvertiserPanel = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   const renderTab = () => {
     switch (activeTab) {
-      case "overview":
+      case "summary":
         return <Summary />;
+    case "overview":
+      return <Dashboard/>
 
       case "Daily Report":
         return <DailyReports />;
@@ -156,8 +159,8 @@ const AdvertiserPanel = () => {
       case "Video Report":
         return <VideoReport />;
 
-      case "Ad Widget":
-        return <AdWidget />;
+      case "Campaign-Performance":
+        return <AdvertiserDashboard/>;
 
       default:
         return null;
@@ -173,10 +176,11 @@ const AdvertiserPanel = () => {
         <div style={styles.navLinks}>
           {[
             "overview",
+            "summary",
             "OTT",
             "Display Report",
             "Video Report",
-            "Ad Widget",
+            "Campaign-Performance",
           ].map((tab) => (
             <button
               key={tab}

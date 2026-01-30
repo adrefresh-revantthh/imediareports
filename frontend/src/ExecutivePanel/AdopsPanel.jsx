@@ -668,15 +668,15 @@ const UploadCenter = () => {
     const token = JSON.parse(localStorage.getItem("jwt"))?.token;
     if (!token) return;
 
-    axios.get("http://localhost:5000/api/publishers", {
+    axios.get("https://imediareports.onrender.com/api/publishers", {
       headers: { Authorization: `Bearer ${token}` },
     }).then((res) => setPublishers(res.data));
 
-    axios.get("http://localhost:5000/api/advertisers", {
+    axios.get("https://imediareports.onrender.com/api/advertisers", {
       headers: { Authorization: `Bearer ${token}` },
     }).then((res) => setAdvertisers(res.data));
 
-    axios.get("http://localhost:5000/api/executives", {
+    axios.get("https://imediareports.onrender.com/api/executives", {
       headers: { Authorization: `Bearer ${token}` },
     }).then((res) => setUploaders(res.data));
   }, []);

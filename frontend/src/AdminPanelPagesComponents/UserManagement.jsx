@@ -38,7 +38,7 @@ const UserManagement = () => {
   /* ✅ Fetch Blocked Users */
   const fetchBlockedUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/blocked-users", {
+      const res = await axios.get("https://imediareports.onrender.com/api/blocked-users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBlockedUsers(res.data.blockedUsers || []);
@@ -56,7 +56,7 @@ const UserManagement = () => {
   const handleBlock = async (name) => {
     try {
       await axios.post(
-        `http://localhost:5000/api/block-user/${name}`,
+        `https://imediareports.onrender.com/api/block-user/${name}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -71,7 +71,7 @@ const UserManagement = () => {
   const handleUnblock = async (name) => {
     try {
       await axios.post(
-        `http://localhost:5000/api/unblock-user/${name}`,
+        `https://imediareports.onrender.com/api/unblock-user/${name}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -88,11 +88,11 @@ const UserManagement = () => {
     try {
       if (editUserId) {
         await axios.put(
-          `http://localhost:5000/api/updateusers/${editUserId}`,
+          `https://imediareports.onrender.com/api/updateusers/${editUserId}`,
           formData
         );
       } else {
-        await axios.post("http://localhost:5000/api/signup", formData);
+        await axios.post("https://imediareports.onrender.com/api/signup", formData);
       }
       fetchUsers();
       setFormData({ name: "", email: "", password: "", role: "publisher" });
@@ -105,7 +105,7 @@ const UserManagement = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/deleteuser/${id}`, {
+      await axios.delete(`https://imediareports.onrender.com/api/deleteuser/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchUsers();
@@ -204,7 +204,7 @@ const UserManagement = () => {
             borderColor: themeColors.borderColor,
           }}
         >
-          <option value="publisher">Publisher</option>
+          <option value="publisher">Publishersss</option>
           <option value="advertiser">Advertiser</option>
           <option value="admin">Admin</option>
                     <option value="executive">Executive</option>

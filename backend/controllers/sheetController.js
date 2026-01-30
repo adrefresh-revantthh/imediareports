@@ -530,14 +530,28 @@ console.log(userSheets);
 /* ---------------------- USER CRUD (UNCHANGED) ---------------------- */
 
 export const getAllUsers = async (req, res) => {
+  
+  
   try {
-    const users = await User.find({rowStatus:true}, "-password");
-    res.status(200).json(users);
+    console.log(req.user,"user");
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }else{
+const users = await User.find(
+      { rowStatus: true },
+      { password: 0 }
+    );
+    return res.status(200).json(users);
+    }
+
+    
+
+    
   } catch (err) {
-    console.error("Error fetching users:", err);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 export const updateUser = async (req, res) => {
   try {

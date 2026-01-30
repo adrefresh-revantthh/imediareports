@@ -107,6 +107,7 @@ import {
 
 import { verifyToken } from "../authMiddleware/authMiddleware.js";
 import { Sheet,GenealogySheet } from "../models/SheetModel.js";
+// import { verify } from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -126,7 +127,7 @@ router.post("/login", loginUser);
 /* ---------------------------------------------------
    ✔ USER CRUD
 --------------------------------------------------- */
-router.get("/getallusers", getAllUsers);
+router.get("/getallusers",verifyToken,getAllUsers);
 router.put("/updateusers/:id", updateUser);
 router.delete("/deleteuser/:id", deleteUser);
 
