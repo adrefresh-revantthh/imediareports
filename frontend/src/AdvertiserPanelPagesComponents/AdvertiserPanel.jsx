@@ -134,15 +134,18 @@ import AdvertiserDisplayData from "../DisplayData";
 import DailyReports from "../DailyReportsofAll";
 import Dashboard from "./Dashboard"
 import AdvertiserDashboard from "./Advertiser-Detailed"
+import AdvertiserReports from "./Advertiser-Reports"
+import AdvertiserProfileCard from "./AdvertiserProfile"
 const AdvertiserPanel = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   const renderTab = () => {
     switch (activeTab) {
-      case "summary":
-        return <Summary />;
-    case "overview":
-      return <Dashboard/>
+    
+    case "Overview":
+      return <Dashboard/>;
+      case "Reports":
+        return <AdvertiserReports/>
 
       case "Daily Report":
         return <DailyReports />;
@@ -153,11 +156,7 @@ const AdvertiserPanel = () => {
       case "uploads":
         return <MainDashboard />;
 
-      case "Display Report":
-        return <AdvertiserDisplayData />;
-
-      case "Video Report":
-        return <VideoReport />;
+     
 
       case "Campaign-Performance":
         return <AdvertiserDashboard/>;
@@ -175,11 +174,8 @@ const AdvertiserPanel = () => {
 
         <div style={styles.navLinks}>
           {[
-            "overview",
-            "summary",
-            "OTT",
-            "Display Report",
-            "Video Report",
+            "Overview",
+          "Reports",
             "Campaign-Performance",
           ].map((tab) => (
             <button
@@ -197,6 +193,7 @@ const AdvertiserPanel = () => {
       </nav>
 
       {/* ✅ MAIN CONTENT */}
+      <AdvertiserProfileCard/>
       <main style={styles.main}>{renderTab()}</main>
     </div>
   );

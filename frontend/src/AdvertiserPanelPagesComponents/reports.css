@@ -1,0 +1,186 @@
+/* ================= ROOT ================= */
+
+:root {
+  --primary: #007f8c;
+  --primary-dark: #005f68;
+  --bg: #f4f7fb;
+  --card-bg: #ffffff;
+  --border: #e2e8f0;
+  --text: #1f2937;
+  --muted: #6b7280;
+}
+
+/* ================= PAGE ================= */
+
+body {
+  background: var(--bg);
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.report-page {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ================= CARD ================= */
+
+.report-card {
+  background: var(--card-bg);
+  width: 100%;
+  max-width: 1300px;
+  border-radius: 14px;
+  padding: 24px 26px 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* ================= HEADERS ================= */
+
+.report-card h2,
+.report-card h3 {
+  margin-bottom: 20px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.report-card h2 {
+  font-size: 22px;
+}
+
+.report-card h3 {
+  font-size: 20px;
+}
+
+/* ================= FILTER BAR ================= */
+
+.filter-bar {
+  display: grid;
+  grid-template-columns:
+    repeat(2, 160px)
+    repeat(4, 1fr)
+    auto
+    auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+/* Inputs & Selects */
+
+.filter-bar input[type="date"],
+.filter-bar select {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.filter-bar input[type="date"]:focus,
+.filter-bar select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 127, 140, 0.12);
+}
+
+/* Checkbox */
+
+.filter-bar label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* ================= BUTTONS ================= */
+
+.primary-btn {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.primary-btn:hover {
+  background: var(--primary-dark);
+}
+
+/* ================= SUMMARY METRICS ================= */
+
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.summary-box {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 127, 140, 0.08),
+    rgba(0, 127, 140, 0.03)
+  );
+  border-radius: 12px;
+  padding: 16px 18px;
+  border: 1px solid rgba(0, 127, 140, 0.15);
+}
+
+.summary-box h4 {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.summary-box p {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ================= GRAPH ================= */
+
+canvas {
+  margin-top: 20px;
+}
+
+/* ================= EMPTY STATE ================= */
+
+.report-card h2 {
+  text-align: center;
+}
+
+.report-card > button {
+  display: block;
+  margin: 0 auto;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1100px) {
+  .filter-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .report-card {
+    padding: 18px;
+  }
+
+  .summary-box p {
+    font-size: 18px;
+  }
+}
