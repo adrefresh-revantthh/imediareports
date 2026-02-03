@@ -19,6 +19,8 @@ import PublisherEarnings from "./PublisherPanelPagesComponents/PublisherLevelEar
 import AdopsPanel from "./ExecutivePanel/AdopsPanel"
 import "./App.css"
 import BusinessOwnerPanel from "./BusinessOwnerPanel/Overview";
+import AdvertiserDashboardHeader from "./Mtd-panel/Mtd-dashboard";
+import SheetTable from "./Mtd-panel/Mtd-Detail";
 // import AdopsPanel from "./ExecutivePanel/AdopsPanel";
 // import AdOpsUploadPanel from "./ExecutivePanel/AdopsPanel";
 
@@ -54,6 +56,8 @@ export default function App() {
         <Route path="/video" element={<VideoReport />} />
         <Route path="/adw" element={<AdWidget />} />
         <Route path="/overall" element={<SummaryReport />} />
+<Route path="/mtd" element={<AdvertiserDashboardHeader/>}></Route>
+<Route path="/mtd-detail" element={<SheetTable/>}></Route>
 
         {/* ✅ Admin Panel */}
         <Route path="/adminpanel" element={<AdminPanel />} />
