@@ -76,7 +76,7 @@ const Login = () => {
         if (user?.role === "admin") navigate("/Adminpanel");
         else if (user?.role === "publisher") navigate("/publisherpanel");
         else if (user?.role === "advertiser") navigate("/advertiserpanel");
-         else if (user?.role === "sales-person") navigate("/mtd");
+         else if (user?.role === "salesperson") navigate("/mtd");
         else navigate("/adops");
       }, 1000);
     } catch (error) {
