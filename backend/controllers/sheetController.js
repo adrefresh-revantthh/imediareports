@@ -76,13 +76,24 @@ const recordFailedLogin = async (username, req) => {
 // ✅ SIGNUP (UNCHANGED)
 export const signupUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    let { name, email, password, role } = req.body;
+console.log(role);
 
     if (!name || !email || !password || !role)
       return res.status(400).json({ message: "All fields are required" });
 
-    const validRoles = ["admin", "publisher", "advertiser", "executive"];
-    if (!validRoles.includes(role.toLowerCase()))
+    // ✅ normalize role
+    role = role.trim().toLowerCase();
+
+    const validRoles = [
+      "admin",
+      "publisher",
+      "advertiser",
+      "executive",
+      "salesperson",
+    ];
+
+    if (!validRoles.includes(role))
       return res.status(400).json({ message: "Invalid role" });
 
     const existing = await User.findOne({ email });
@@ -95,7 +106,7 @@ export const signupUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: role.toLowerCase(),
+      role,
     });
 
     await newUser.save();
@@ -109,7 +120,6 @@ export const signupUser = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 /* ---------------------- LOGIN WITH BLOCK LOGIC ---------------------- */
 
 export const loginUser = async (req, res) => {

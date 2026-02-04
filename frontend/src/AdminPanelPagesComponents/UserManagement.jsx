@@ -83,25 +83,37 @@ const UserManagement = () => {
   };
 
   /* ✅ Existing form logic untouched */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editUserId) {
-        await axios.put(
-          `https://imediareports.onrender.com/api/updateusers/${editUserId}`,
-          formData
-        );
-      } else {
-        await axios.post("https://imediareports.onrender.com/api/signup", formData);
-      }
-      fetchUsers();
-      setFormData({ name: "", email: "", password: "", role: "publisher" });
-      setEditUserId(null);
-    } catch (err) {
-      console.error("Error saving user:", err);
-    }
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    };
 
+    if (editUserId) {
+      await axios.put(
+        `https://imediareports.onrender.com/api/updateusers/${editUserId}`,
+        formData,
+        config
+      );
+    } else {
+      await axios.post(
+        "https://imediareports.onrender.com/api/signup",
+        formData,
+        config
+      );
+    }
+
+    fetchUsers();
+    setFormData({ name: "", email: "", password: "", role: "publisher" });
+    setEditUserId(null);
+  } catch (err) {
+    console.error("Error saving user:", err.response?.data || err);
+  }
+};
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure?")) return;
     try {
@@ -204,10 +216,11 @@ const UserManagement = () => {
             borderColor: themeColors.borderColor,
           }}
         >
-          <option value="publisher">Publishersss</option>
+          <option value="publisher">Publisher</option>
           <option value="advertiser">Advertiser</option>
           <option value="admin">Admin</option>
                     <option value="executive">Executive</option>
+                     <option value="salesperson">Sales-person</option>
 
         </select>
 
@@ -238,17 +251,19 @@ const UserManagement = () => {
                   <td style={styles.td}>{user.name}</td>
                   <td style={styles.td}>{user.email}</td>
                   <td style={styles.td}>
-                    <span
+      <span
   style={{
     ...styles.roleBadge,
     backgroundColor:
       user.role === "admin"
-        ? "#2563eb"
+        ? "#2563eb"      // blue
         : user.role === "advertiser"
-        ? "#10b981"
+        ? "#10b981"      // green
         : user.role === "executive"
-        ? "#8b5cf6" // 🆕 Purple for Executive
-        : "#f59e0b", // Default for others
+        ? "#8b5cf6"      // purple
+        : user.role === "salesperson"
+        ? "#ef4444"      // 🔴 red
+        : "#f59e0b",     // default (orange)
   }}
 >
   {user.role}
