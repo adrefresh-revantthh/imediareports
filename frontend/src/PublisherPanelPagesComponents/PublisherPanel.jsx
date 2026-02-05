@@ -222,7 +222,7 @@ const styles = {
 
   logo: {
     color: "#fff",
-    fontSize: "18px",
+    fontSize: "28px",
     fontWeight: 700,
     marginRight: "10px",
   },
@@ -232,7 +232,7 @@ const styles = {
     border: "none",
     color: "#fff",
     padding: "6px 12px",
-    fontSize: "15px",
+    fontSize: "18px",
     borderRadius: "6px",
     cursor: "pointer",
     fontWeight: 500,

@@ -168,7 +168,7 @@ const AdminPanel = () => {
   const colors = {
     pageBg: theme === "dark" ? "#0f172a" : "#f4f6f8",
     navbarBg: "#6D28D9", // 💜 Violet
-    activeBtn: "#D9F99D", // 🍋 Lime
+    activeBtn: "#Dffa33", // 🍋 Lime
     activeText: "#365314",
     text: "#ffffff",
     contentBg: theme === "dark" ? "#020617" : "transparent",

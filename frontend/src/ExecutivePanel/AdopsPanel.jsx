@@ -606,12 +606,288 @@
 
 
  
-import React, { useState, useEffect } from "react";
+// import React, { useState, useEffect } from "react";
+// import * as XLSX from "xlsx";
+// import axios from "axios";
+// import Navbar from "./AdopsNavbar";
+
+// // ========================= MAIN PANEL ========================= //
+// const AdopsPanel = () => {
+//   const [activeSection, setActiveSection] = useState("Overview");
+
+//   const renderSection = () => {
+//     switch (activeSection) {
+//       case "Overview":
+//         return <UploadCenter />;
+//       case "Upload History":
+//         return <UploadHistory />;
+//       case "Sheet Validator":
+//         return <SheetValidator />;
+//       case "Error Logs":
+//         return <ErrorLogs />;
+//       case "Mapping Assistant":
+//         return <MappingAssistant />;
+//       case "Approvals":
+//         return <Approvals />;
+//       default:
+//         return <UploadCenter />;
+//     }
+//   };
+
+//   return (
+//     <div style={styles.page}>
+//       <Navbar active={activeSection} setActive={setActiveSection} />
+//       <div style={styles.content}>{renderSection()}</div>
+//     </div>
+//   );
+// };
+
+// // ========================= UPLOAD CENTER ========================= //
+// const UploadCenter = () => {
+//   const [publisher, setPublisher] = useState("");
+//   const [advertiser, setAdvertiser] = useState("");
+//   const [uploadedBy, setUploadedBy] = useState("");
+//   const [campaign, setCampaign] = useState("");
+//   const [customCampaign, setCustomCampaign] = useState("");
+//   const [uploading, setUploading] = useState(false);
+
+//   const [publishers, setPublishers] = useState([]);
+//   const [advertisers, setAdvertisers] = useState([]);
+//   const [uploaders, setUploaders] = useState([]);
+
+//   const campaigns = [
+//     "Select Campaign",
+//     "BigFest2025",
+//     "SummerSale",
+//     "Launch_X",
+//     "BrandAwareness",
+//     "Other",
+//   ];
+
+//   useEffect(() => {
+//     const token = JSON.parse(localStorage.getItem("jwt"))?.token;
+//     if (!token) return;
+
+//     axios.get("https://imediareports.onrender.com/api/publishers", {
+//       headers: { Authorization: `Bearer ${token}` },
+//     }).then((res) => setPublishers(res.data));
+
+//     axios.get("https://imediareports.onrender.com/api/advertisers", {
+//       headers: { Authorization: `Bearer ${token}` },
+//     }).then((res) => setAdvertisers(res.data));
+
+//     axios.get("https://imediareports.onrender.com/api/executives", {
+//       headers: { Authorization: `Bearer ${token}` },
+//     }).then((res) => setUploaders(res.data));
+//   }, []);
+
+//   const handleFileUpload = async (e) => {
+//     const file = e.target.files[0];
+//     if (!file) return;
+
+//     if (!publisher || !advertiser || !uploadedBy)
+//       return alert("Please fill all required fields");
+
+//     const finalCampaign =
+//       campaign === "Other" ? customCampaign.trim() : campaign;
+
+//     if (!finalCampaign || finalCampaign === "Select Campaign")
+//       return alert("Select campaign");
+
+//     setUploading(true);
+
+//     const reader = new FileReader();
+//     reader.onload = async (event) => {
+//       const workbook = XLSX.read(event.target.result, { type: "array" });
+
+//       const parsedSheets = workbook.SheetNames.map((name) => ({
+//         name: name.trim().toLowerCase(),
+//         original: name,
+//         data: XLSX.utils.sheet_to_json(workbook.Sheets[name], { defval: "" }),
+//       }));
+
+//       // ✅ ONLY NEW LOGIC (SPLIT SHEETS)
+//       const genealogySheets = parsedSheets.filter((s) =>
+//         ["genealogy", "tree", "referral", "network", "lineage"].some((k) =>
+//           s.name.includes(k)
+//         )
+//       );
+
+//       const normalSheets = parsedSheets.filter(
+//         (s) =>
+//           !["genealogy", "tree", "referral", "network", "lineage"].some((k) =>
+//             s.name.includes(k)
+//           )
+//       );
+
+//       const token = JSON.parse(localStorage.getItem("jwt"))?.token;
+//       const uploaderObj = uploaders.find((u) => u._id === uploadedBy);
+
+//       const meta = {
+//         publisher_id: publisher._id,
+//         publisher: publisher.name,
+//         advertiser_id: advertiser._id,
+//         advertiser: advertiser.name,
+//         uploadedBy,
+//         uploadedByName: uploaderObj?.name,
+//         campaign: finalCampaign,
+//         uploadTime: new Date().toISOString(),
+//       };
+
+//       try {
+//         // ✅ NORMAL SHEETS
+//         if (normalSheets.length > 0) {
+//           await axios.post(
+//             "https://imediareports.onrender.com/api/upload",
+//             { sheets: normalSheets, meta },
+//             { headers: { Authorization: `Bearer ${token}` } }
+//           );
+//         }
+
+//         // ✅ GENEALOGY SHEETS (THIS WAS MISSING)
+//         if (genealogySheets.length > 0) {
+//           await axios.post(
+//             "https://imediareports.onrender.com/api/uploadGenealogy",
+//             { sheets: genealogySheets, meta },
+//             { headers: { Authorization: `Bearer ${token}` } }
+//           );
+//         }
+
+//         alert("📤 Upload Successful!");
+//       } catch (err) {
+//         console.error(err);
+//         alert("Upload failed");
+//       } finally {
+//         setUploading(false);
+//       }
+//     };
+
+//     reader.readAsArrayBuffer(file);
+//   };
+
+//   return (
+//     <div style={styles.card}>
+//       <h2 style={styles.title}>📊 AdOps Upload Center</h2>
+//       <div style={styles.grid}>
+//         <select
+//           style={styles.input}
+//           onChange={(e) =>
+//             setPublisher(publishers.find((p) => p._id === e.target.value))
+//           }
+//         >
+//           <option value="">Select Publisher</option>
+//           {publishers.map((p) => (
+//             <option key={p._id} value={p._id}>
+//               {p.name}
+//             </option>
+//           ))}
+//         </select>
+
+//         <select
+//           style={styles.input}
+//           onChange={(e) =>
+//             setAdvertiser(advertisers.find((a) => a._id === e.target.value))
+//           }
+//         >
+//           <option value="">Select Advertiser</option>
+//           {advertisers.map((a) => (
+//             <option key={a._id} value={a._id}>
+//               {a.name}
+//             </option>
+//           ))}
+//         </select>
+
+//         <select
+//           style={styles.input}
+//           onChange={(e) => setUploadedBy(e.target.value)}
+//         >
+//           <option value="">Uploaded By</option>
+//           {uploaders.map((u) => (
+//             <option key={u._id} value={u._id}>
+//               {u.name}
+//             </option>
+//           ))}
+//         </select>
+
+//         <select
+//           style={styles.input}
+//           value={campaign}
+//           onChange={(e) => setCampaign(e.target.value)}
+//         >
+//           {campaigns.map((c) => (
+//             <option key={c}>{c}</option>
+//           ))}
+//         </select>
+
+//         {campaign === "Other" && (
+//           <input
+//             style={styles.input}
+//             placeholder="Custom Campaign"
+//             onChange={(e) => setCustomCampaign(e.target.value)}
+//           />
+//         )}
+
+//         <input type="file" onChange={handleFileUpload} />
+//       </div>
+
+//       <button style={styles.button} disabled={uploading}>
+//         {uploading ? "Uploading..." : "🚀 Upload"}
+//       </button>
+//     </div>
+//   );
+// };
+
+// // ========================= OTHER SECTIONS ========================= //
+// const UploadHistory = () => <Section title="📚 Upload History" />;
+// const SheetValidator = () => <Section title="🧪 Sheet Validator" />;
+// const ErrorLogs = () => <Section title="⚠️ Error Logs" />;
+// const MappingAssistant = () => <Section title="🧩 Mapping Assistant" />;
+// const Approvals = () => <Section title="✔ Approvals" />;
+
+// const Section = ({ title }) => (
+//   <div style={styles.card}>
+//     <h2 style={styles.title}>{title}</h2>
+//     <p>Content coming soon...</p>
+//   </div>
+// );
+
+// // ========================= STYLES ========================= //
+// const styles = {
+//   page: { background: "#EEF2FF", minHeight: "100vh" },
+//   content: { padding: "40px", display: "flex", justifyContent: "center" },
+//   card: {
+//     background: "#fff",
+//     width: 650,
+//     padding: 30,
+//     borderRadius: 16,
+//     boxShadow: "0 6px 25px rgba(0,0,0,0.08)",
+//   },
+//   title: { textAlign: "center", marginBottom: 20 },
+//   grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15 },
+//   input: {
+//     padding: 10,
+//     borderRadius: 8,
+//     border: "1px solid #d0d5dd",
+//   },
+//   button: {
+//     marginTop: 20,
+//     padding: 12,
+//     borderRadius: 8,
+//     border: "none",
+//     background: "#6D28D9",
+//     color: "#fff",
+//     fontWeight: 700,
+//     cursor: "pointer",
+//   },
+// };
+
+// export default AdopsPanel;
+import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import axios from "axios";
 import Navbar from "./AdopsNavbar";
 
-// ========================= MAIN PANEL ========================= //
+/* ========================= MAIN PANEL ========================= */
 const AdopsPanel = () => {
   const [activeSection, setActiveSection] = useState("Overview");
 
@@ -620,15 +896,15 @@ const AdopsPanel = () => {
       case "Overview":
         return <UploadCenter />;
       case "Upload History":
-        return <UploadHistory />;
+        return <Section title="📚 Upload History" />;
       case "Sheet Validator":
-        return <SheetValidator />;
+        return <Section title="🧪 Sheet Validator" />;
       case "Error Logs":
-        return <ErrorLogs />;
+        return <Section title="⚠️ Error Logs" />;
       case "Mapping Assistant":
-        return <MappingAssistant />;
+        return <Section title="🧩 Mapping Assistant" />;
       case "Approvals":
-        return <Approvals />;
+        return <Section title="✔ Approvals" />;
       default:
         return <UploadCenter />;
     }
@@ -642,7 +918,7 @@ const AdopsPanel = () => {
   );
 };
 
-// ========================= UPLOAD CENTER ========================= //
+/* ========================= UPLOAD CENTER ========================= */
 const UploadCenter = () => {
   const [publisher, setPublisher] = useState("");
   const [advertiser, setAdvertiser] = useState("");
@@ -650,6 +926,7 @@ const UploadCenter = () => {
   const [campaign, setCampaign] = useState("");
   const [customCampaign, setCustomCampaign] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [publishers, setPublishers] = useState([]);
   const [advertisers, setAdvertisers] = useState([]);
@@ -668,17 +945,23 @@ const UploadCenter = () => {
     const token = JSON.parse(localStorage.getItem("jwt"))?.token;
     if (!token) return;
 
-    axios.get("https://imediareports.onrender.com/api/publishers", {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then((res) => setPublishers(res.data));
-
-    axios.get("https://imediareports.onrender.com/api/advertisers", {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then((res) => setAdvertisers(res.data));
-
-    axios.get("https://imediareports.onrender.com/api/executives", {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then((res) => setUploaders(res.data));
+    Promise.all([
+      axios.get("https://imediareports.onrender.com/api/publishers", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      axios.get("https://imediareports.onrender.com/api/advertisers", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      axios.get("https://imediareports.onrender.com/api/executives", {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ])
+      .then(([p, a, u]) => {
+        setPublishers(p.data);
+        setAdvertisers(a.data);
+        setUploaders(u.data);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const handleFileUpload = async (e) => {
@@ -706,7 +989,6 @@ const UploadCenter = () => {
         data: XLSX.utils.sheet_to_json(workbook.Sheets[name], { defval: "" }),
       }));
 
-      // ✅ ONLY NEW LOGIC (SPLIT SHEETS)
       const genealogySheets = parsedSheets.filter((s) =>
         ["genealogy", "tree", "referral", "network", "lineage"].some((k) =>
           s.name.includes(k)
@@ -735,7 +1017,6 @@ const UploadCenter = () => {
       };
 
       try {
-        // ✅ NORMAL SHEETS
         if (normalSheets.length > 0) {
           await axios.post(
             "https://imediareports.onrender.com/api/upload",
@@ -744,7 +1025,6 @@ const UploadCenter = () => {
           );
         }
 
-        // ✅ GENEALOGY SHEETS (THIS WAS MISSING)
         if (genealogySheets.length > 0) {
           await axios.post(
             "https://imediareports.onrender.com/api/uploadGenealogy",
@@ -755,7 +1035,6 @@ const UploadCenter = () => {
 
         alert("📤 Upload Successful!");
       } catch (err) {
-        console.error(err);
         alert("Upload failed");
       } finally {
         setUploading(false);
@@ -765,58 +1044,40 @@ const UploadCenter = () => {
     reader.readAsArrayBuffer(file);
   };
 
+  if (loading) return <SkeletonCard />;
+
   return (
     <div style={styles.card}>
       <h2 style={styles.title}>📊 AdOps Upload Center</h2>
+
       <div style={styles.grid}>
-        <select
-          style={styles.input}
-          onChange={(e) =>
-            setPublisher(publishers.find((p) => p._id === e.target.value))
-          }
-        >
+        <select style={styles.input} onChange={(e) =>
+          setPublisher(publishers.find((p) => p._id === e.target.value))
+        }>
           <option value="">Select Publisher</option>
           {publishers.map((p) => (
-            <option key={p._id} value={p._id}>
-              {p.name}
-            </option>
+            <option key={p._id} value={p._id}>{p.name}</option>
           ))}
         </select>
 
-        <select
-          style={styles.input}
-          onChange={(e) =>
-            setAdvertiser(advertisers.find((a) => a._id === e.target.value))
-          }
-        >
+        <select style={styles.input} onChange={(e) =>
+          setAdvertiser(advertisers.find((a) => a._id === e.target.value))
+        }>
           <option value="">Select Advertiser</option>
           {advertisers.map((a) => (
-            <option key={a._id} value={a._id}>
-              {a.name}
-            </option>
+            <option key={a._id} value={a._id}>{a.name}</option>
           ))}
         </select>
 
-        <select
-          style={styles.input}
-          onChange={(e) => setUploadedBy(e.target.value)}
-        >
+        <select style={styles.input} onChange={(e) => setUploadedBy(e.target.value)}>
           <option value="">Uploaded By</option>
           {uploaders.map((u) => (
-            <option key={u._id} value={u._id}>
-              {u.name}
-            </option>
+            <option key={u._id} value={u._id}>{u.name}</option>
           ))}
         </select>
 
-        <select
-          style={styles.input}
-          value={campaign}
-          onChange={(e) => setCampaign(e.target.value)}
-        >
-          {campaigns.map((c) => (
-            <option key={c}>{c}</option>
-          ))}
+        <select style={styles.input} value={campaign} onChange={(e) => setCampaign(e.target.value)}>
+          {campaigns.map((c) => <option key={c}>{c}</option>)}
         </select>
 
         {campaign === "Other" && (
@@ -837,46 +1098,78 @@ const UploadCenter = () => {
   );
 };
 
-// ========================= OTHER SECTIONS ========================= //
-const UploadHistory = () => <Section title="📚 Upload History" />;
-const SheetValidator = () => <Section title="🧪 Sheet Validator" />;
-const ErrorLogs = () => <Section title="⚠️ Error Logs" />;
-const MappingAssistant = () => <Section title="🧩 Mapping Assistant" />;
-const Approvals = () => <Section title="✔ Approvals" />;
-
-const Section = ({ title }) => (
-  <div style={styles.card}>
-    <h2 style={styles.title}>{title}</h2>
-    <p>Content coming soon...</p>
+/* ========================= SKELETON ========================= */
+const SkeletonCard = () => (
+  <div style={{ ...styles.card, background: "#f3f4f6" }}>
+    <div className="skeleton" />
+    <style>
+      {`
+        .skeleton {
+          height: 260px;
+          border-radius: 14px;
+          background: linear-gradient(
+            90deg,
+            #e5e7eb 25%,
+            #f3f4f6 37%,
+            #e5e7eb 63%
+          );
+          background-size: 400% 100%;
+          animation: shimmer 1.4s infinite;
+        }
+        @keyframes shimmer {
+          0% { background-position: 100% 0 }
+          100% { background-position: -100% 0 }
+        }
+      `}
+    </style>
   </div>
 );
 
-// ========================= STYLES ========================= //
+/* ========================= SECTION ========================= */
+const Section = ({ title }) => (
+  <div style={styles.card}>
+    <h2 style={styles.title}>{title}</h2>
+    <p style={{ fontSize: "18px" }}>Content coming soon...</p>
+  </div>
+);
+
+/* ========================= STYLES ========================= */
 const styles = {
   page: { background: "#EEF2FF", minHeight: "100vh" },
-  content: { padding: "40px", display: "flex", justifyContent: "center" },
+  content: { padding: "50px", display: "flex", justifyContent: "center" },
   card: {
     background: "#fff",
-    width: 650,
-    padding: 30,
-    borderRadius: 16,
-    boxShadow: "0 6px 25px rgba(0,0,0,0.08)",
+    width: 720,
+    padding: 36,
+    borderRadius: 18,
+    boxShadow: "0 8px 28px rgba(0,0,0,0.1)",
   },
-  title: { textAlign: "center", marginBottom: 20 },
-  grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 15 },
+  title: {
+    textAlign: "center",
+    marginBottom: 24,
+    fontSize: "34px",
+    fontWeight: 800,
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 18,
+  },
   input: {
-    padding: 10,
-    borderRadius: 8,
+    padding: 14,
+    fontSize: "18px",
+    borderRadius: 10,
     border: "1px solid #d0d5dd",
   },
   button: {
-    marginTop: 20,
-    padding: 12,
-    borderRadius: 8,
+    marginTop: 28,
+    padding: 16,
+    fontSize: "20px",
+    borderRadius: 10,
     border: "none",
     background: "#6D28D9",
     color: "#fff",
-    fontWeight: 700,
+    fontWeight: 800,
     cursor: "pointer",
   },
 };

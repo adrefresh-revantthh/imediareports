@@ -44,15 +44,16 @@ const styles = {
   card: {
     background: "#ffffff",
     padding: "18px 20px",
-    borderRadius: "12px",
+    // borderRadius: "12px",
     boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
     marginBottom: "24px",
-    maxWidth: "420px",
+ 
+    width:"100vw"
   },
 
   role: {
     margin: "0 0 12px 0",
-    fontSize: "12px",
+    fontSize: "48px",
     letterSpacing: "1px",
     color: "#6b7280",
     fontWeight: "700",
@@ -65,21 +66,21 @@ const styles = {
   },
 
   avatar: {
-    width: "52px",
-    height: "52px",
+    width: "102px",
+    height: "102px",
     borderRadius: "50%",
     background: "#01303f",
     color: "#fff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "22px",
+    fontSize: "42px",
     fontWeight: "700",
   },
 
   name: {
     margin: 0,
-    fontSize: "18px",
+    fontSize: "48px",
     fontWeight: "700",
     color: "#01303f",
   },

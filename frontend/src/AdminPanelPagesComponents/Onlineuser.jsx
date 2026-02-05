@@ -59,11 +59,13 @@ useEffect(() => {
     try {
       const token = JSON.parse(localStorage.getItem("jwt"))?.token;
 
-      const res = await axios.get("http://localhost:5000/api/online-users", {
+      const res = await axios.get("https://imediareports.onrender.com/api/online-users", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       setUsers(res.data.users);
+      console.log(users,"users");
+      
     } catch (err) {
       console.log("User fetch error:", err.message);
     }
