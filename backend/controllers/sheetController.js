@@ -740,7 +740,7 @@ export const getAdvertisers = async (req, res) => {
     const advertisers = await User.find(
       { role: "advertiser" },
       { password: 0 } ,
-        {rowStatus:"true"},
+        {rowStatus:false},
     ).sort({ createdAt: -1 });
 
     res.status(200).json(advertisers);
@@ -756,7 +756,7 @@ export const getPublishers = async (req, res) => {
     const publishers = await User.find(
       { role: "publisher" },
       { password: 0 },
-        {rowStatus:"true"},
+        {rowStatus:false},
     ).sort({ createdAt: -1 });
 
     res.status(200).json(publishers);
@@ -771,7 +771,7 @@ export const getExecutives = async (req, res) => {
     const executives = await User.find(
       { role: "executive" },
       { password: 0 },
-        {rowStatus:"true"},
+        {rowStatus:false},
     ).sort({ createdAt: -1 });
 
     res.status(200).json(executives);
