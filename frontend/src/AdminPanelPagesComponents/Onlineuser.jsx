@@ -120,7 +120,7 @@ useEffect(() => {
             <th style={th(themeColors)}>Email</th>
             <th style={th(themeColors)}>Role</th>
             <th style={th(themeColors)}>Status</th>
-            <th style={th(themeColors)}>Last Active</th>
+            <th style={th(themeColors)}>Last Activee</th>
           </tr>
         </thead>
 
