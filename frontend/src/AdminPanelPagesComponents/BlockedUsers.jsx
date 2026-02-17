@@ -22,7 +22,10 @@ const BlockedUsers = () => {
       const res = await axios.get("https://imediareports.onrender.com/api/blocked-users", {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setBlockedUsers(res.data.blockedUsers || []);
+      console.log(blockedUsers,"blocked");
+      
     } catch (err) {
       console.error("Error fetching blocked users:", err);
     } finally {

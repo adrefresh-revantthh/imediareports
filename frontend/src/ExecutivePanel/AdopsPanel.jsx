@@ -882,43 +882,891 @@
 // };
 
 // export default AdopsPanel;
+
+// import React, { useEffect, useState } from "react";
+// import * as XLSX from "xlsx";
+// import axios from "axios";
+// import Navbar from "./AdopsNavbar";
+
+// /* ========================= MAIN PANEL ========================= */
+// const AdopsPanel = () => {
+//   const [activeSection, setActiveSection] = useState("Overview");
+
+//   const renderSection = () => {
+//     switch (activeSection) {
+//       case "Overview":
+//         return <UploadCenter />;
+//       case "Upload History":
+//         return <Section title="📚 Upload History" />;
+//       case "Sheet Validator":
+//         return <Section title="🧪 Sheet Validator" />;
+//       case "Error Logs":
+//         return <Section title="⚠️ Error Logs" />;
+//       case "Mapping Assistant":
+//         return <Section title="🧩 Mapping Assistant" />;
+//       case "Approvals":
+//         return <Section title="✔ Approvals" />;
+//       default:
+//         return <UploadCenter />;
+//     }
+//   };
+
+//   return (
+//     <div style={styles.page}>
+//       <Navbar active={activeSection} setActive={setActiveSection} />
+//       <div style={styles.content}>{renderSection()}</div>
+//     </div>
+//   );
+// };
+
+// /* ========================= UPLOAD CENTER ========================= */
+// const UploadCenter = () => {
+//   const [publisher, setPublisher] = useState("");
+//   const [advertiser, setAdvertiser] = useState("");
+//   const [uploadedBy, setUploadedBy] = useState("");
+//   const [campaign, setCampaign] = useState("");
+//   const [customCampaign, setCustomCampaign] = useState("");
+//   const [uploading, setUploading] = useState(false);
+//   const [loading, setLoading] = useState(true);
+
+//   const [publishers, setPublishers] = useState([]);
+//   const [advertisers, setAdvertisers] = useState([]);
+//   const [uploaders, setUploaders] = useState([]);
+
+//   const campaigns = [
+//     "Select Campaign",
+//     "BigFest2025",
+//     "SummerSale",
+//     "Launch_X",
+//     "BrandAwareness",
+//     "Other",
+//   ];
+
+//   useEffect(() => {
+//     const token = JSON.parse(localStorage.getItem("jwt"))?.token;
+//     if (!token) return;
+
+//     Promise.all([
+//       axios.get("https://imediareports.onrender.com/api/publishers", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       }),
+//       axios.get("https://imediareports.onrender.com/api/advertisers", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       }),
+//       axios.get("https://imediareports.onrender.com/api/executives", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       }),
+//     ])
+//       .then(([p, a, u]) => {
+//         setPublishers(p.data);
+//         setAdvertisers(a.data);
+//         setUploaders(u.data);
+//       })
+//       .finally(() => setLoading(false));
+//   }, []);
+
+//   const handleFileUpload = async (e) => {
+//     const file = e.target.files[0];
+//     if (!file) return;
+
+//     if (!publisher || !advertiser || !uploadedBy)
+//       return alert("Please fill all required fields");
+
+//     const finalCampaign =
+//       campaign === "Other" ? customCampaign.trim() : campaign;
+
+//     if (!finalCampaign || finalCampaign === "Select Campaign")
+//       return alert("Select campaign");
+
+//     setUploading(true);
+
+//     const reader = new FileReader();
+//     reader.onload = async (event) => {
+//       const workbook = XLSX.read(event.target.result, { type: "array" });
+
+//       const parsedSheets = workbook.SheetNames.map((name) => ({
+//         name: name.trim().toLowerCase(),
+//         original: name,
+//         data: XLSX.utils.sheet_to_json(workbook.Sheets[name], { defval: "" }),
+//       }));
+
+//       const genealogySheets = parsedSheets.filter((s) =>
+//         ["genealogy", "tree", "referral", "network", "lineage"].some((k) =>
+//           s.name.includes(k)
+//         )
+//       );
+
+//       const normalSheets = parsedSheets.filter(
+//         (s) =>
+//           !["genealogy", "tree", "referral", "network", "lineage"].some((k) =>
+//             s.name.includes(k)
+//           )
+//       );
+
+//       const token = JSON.parse(localStorage.getItem("jwt"))?.token;
+//       const uploaderObj = uploaders.find((u) => u._id === uploadedBy);
+
+//       const meta = {
+//         publisher_id: publisher._id,
+//         publisher: publisher.name,
+//         advertiser_id: advertiser._id,
+//         advertiser: advertiser.name,
+//         uploadedBy,
+//         uploadedByName: uploaderObj?.name,
+//         campaign: finalCampaign,
+//         uploadTime: new Date().toISOString(),
+//       };
+
+//       try {
+//         if (normalSheets.length > 0) {
+//           await axios.post(
+//             "https://imediareports.onrender.com/api/upload",
+//             { sheets: normalSheets, meta },
+//             { headers: { Authorization: `Bearer ${token}` } }
+//           );
+//         }
+
+//         if (genealogySheets.length > 0) {
+//           await axios.post(
+//             "https://imediareports.onrender.com/api/uploadGenealogy",
+//             { sheets: genealogySheets, meta },
+//             { headers: { Authorization: `Bearer ${token}` } }
+//           );
+//         }
+
+//         alert("📤 Upload Successful!");
+//       } catch (err) {
+//         alert("Upload failed");
+//       } finally {
+//         setUploading(false);
+//       }
+//     };
+
+//     reader.readAsArrayBuffer(file);
+//   };
+
+//   if (loading) return <SkeletonCard />;
+
+//   return (
+//     <div style={styles.card}>
+//       <h2 style={styles.title}>📊 AdOps Upload Center</h2>
+
+//       <div style={styles.grid}>
+//         <select style={styles.input} onChange={(e) =>
+//           setPublisher(publishers.find((p) => p._id === e.target.value))
+//         }>
+//           <option value="">Select Publisher</option>
+//           {publishers.map((p) => (
+//             <option key={p._id} value={p._id}>{p.name}</option>
+//           ))}
+//         </select>
+
+//         <select style={styles.input} onChange={(e) =>
+//           setAdvertiser(advertisers.find((a) => a._id === e.target.value))
+//         }>
+//           <option value="">Select Advertiser</option>
+//           {advertisers.map((a) => (
+//             <option key={a._id} value={a._id}>{a.name}</option>
+//           ))}
+//         </select>
+
+//         <select style={styles.input} onChange={(e) => setUploadedBy(e.target.value)}>
+//           <option value="">Uploaded By</option>
+//           {uploaders.map((u) => (
+//             <option key={u._id} value={u._id}>{u.name}</option>
+//           ))}
+//         </select>
+
+//         <select style={styles.input} value={campaign} onChange={(e) => setCampaign(e.target.value)}>
+//           {campaigns.map((c) => <option key={c}>{c}</option>)}
+//         </select>
+
+//         {campaign === "Other" && (
+//           <input
+//             style={styles.input}
+//             placeholder="Custom Campaign"
+//             onChange={(e) => setCustomCampaign(e.target.value)}
+//           />
+//         )}
+
+//         <input type="file" onChange={handleFileUpload} />
+//       </div>
+
+//       <button style={styles.button} disabled={uploading}>
+//         {uploading ? "Uploading..." : "🚀 Upload"}
+//       </button>
+//     </div>
+//   );
+// };
+
+// /* ========================= SKELETON ========================= */
+// const SkeletonCard = () => (
+//   <div style={{ ...styles.card, background: "#f3f4f6" }}>
+//     <div className="skeleton" />
+//     <style>
+//       {`
+//         .skeleton {
+//           height: 260px;
+//           border-radius: 14px;
+//           background: linear-gradient(
+//             90deg,
+//             #e5e7eb 25%,
+//             #f3f4f6 37%,
+//             #e5e7eb 63%
+//           );
+//           background-size: 400% 100%;
+//           animation: shimmer 1.4s infinite;
+//         }
+//         @keyframes shimmer {
+//           0% { background-position: 100% 0 }
+//           100% { background-position: -100% 0 }
+//         }
+//       `}
+//     </style>
+//   </div>
+// );
+
+// /* ========================= SECTION ========================= */
+// const Section = ({ title }) => (
+//   <div style={styles.card}>
+//     <h2 style={styles.title}>{title}</h2>
+//     <p style={{ fontSize: "18px" }}>Content coming soon...</p>
+//   </div>
+// );
+
+// /* ========================= STYLES ========================= */
+// const styles = {
+//   page: { background: "#EEF2FF", minHeight: "100vh" },
+//   content: { padding: "50px", display: "flex", justifyContent: "center" },
+//   card: {
+//     background: "#fff",
+//     width: 720,
+//     padding: 36,
+//     borderRadius: 18,
+//     boxShadow: "0 8px 28px rgba(0,0,0,0.1)",
+//   },
+//   title: {
+//     textAlign: "center",
+//     marginBottom: 24,
+//     fontSize: "34px",
+//     fontWeight: 800,
+//   },
+//   grid: {
+//     display: "grid",
+//     gridTemplateColumns: "1fr 1fr",
+//     gap: 18,
+//   },
+//   input: {
+//     padding: 14,
+//     fontSize: "18px",
+//     borderRadius: 10,
+//     border: "1px solid #d0d5dd",
+//   },
+//   button: {
+//     marginTop: 28,
+//     padding: 16,
+//     fontSize: "20px",
+//     borderRadius: 10,
+//     border: "none",
+//     background: "#6D28D9",
+//     color: "#fff",
+//     fontWeight: 800,
+//     cursor: "pointer",
+//   },
+// };
+
+// export default AdopsPanel;
+
+// import React, { useEffect, useState } from "react";
+// import * as XLSX from "xlsx";
+// import axios from "axios";
+
+// /* ========================= MAIN PANEL ========================= */
+
+// const AdopsPanel = () => {
+//   const [activeSection, setActiveSection] = useState("Overview");
+//   const [showProfileModal, setShowProfileModal] = useState(false);
+
+//   const [user, setUser] = useState({
+//     name: "",
+//     email: "",
+//   });
+
+//   /* 🔐 FETCH USER FROM JWT */
+//   useEffect(() => {
+//     const jwt = JSON.parse(localStorage.getItem("jwt"));
+//     const loggedUser = jwt?.user;
+
+//     if (loggedUser) {
+//       setUser({
+//         name: loggedUser.name || "AdOps User",
+//         email: loggedUser.email || "Not Available",
+//       });
+//     }
+//   }, []);
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("jwt");
+//     window.location.href = "/login";
+//   };
+
+//   const sections = [
+//     "Overview",
+//     "Upload History",
+//     "Sheet Validator",
+  
+//     "Approvals",
+//   ];
+
+//   const renderSection = () => {
+//     switch (activeSection) {
+//       case "Overview":
+//         return <UploadCenter />;
+//       default:
+//         return <Section title={activeSection} />;
+//     }
+//   };
+
+//   return (
+//     <div style={styles.page}>
+//       {/* 🔥 TOP NAVBAR */}
+//       <div style={styles.topBar}>
+//         <h2 style={styles.logo}>Ad-Operations Panel</h2>
+
+//         <div style={styles.rightSection}>
+//           <div style={styles.navLinks}>
+//             {sections.map((sec) => (
+//               <span
+//                 key={sec}
+//                 onClick={() => setActiveSection(sec)}
+//                 style={{
+//                   ...styles.navLink,
+//                   ...(activeSection === sec && styles.activeNavLink),
+//                 }}
+//               >
+//                 {sec}
+//               </span>
+//             ))}
+//           </div>
+
+//           <div
+//             style={styles.profileCircle}
+//             onClick={() => setShowProfileModal(true)}
+//           >
+//             {user.name?.charAt(0)?.toUpperCase() || "A"}
+//           </div>
+//         </div>
+//       </div>
+
+//       <div style={styles.content}>{renderSection()}</div>
+
+//       {/* 🔐 PROFILE MODAL */}
+//       {showProfileModal && (
+//         <div
+//           style={styles.modalOverlay}
+//           onClick={() => setShowProfileModal(false)}
+//         >
+//           <div
+//             style={styles.modal}
+//             onClick={(e) => e.stopPropagation()}
+//           >
+//             <div style={styles.modalAvatar}>
+//               {user.name?.charAt(0)?.toUpperCase() || "A"}
+//             </div>
+
+//             <h3 style={{ marginBottom: 8 }}>{user.name}</h3>
+//             <p style={{ color: "#666", marginBottom: 20 }}>
+//               {user.email}
+//             </p>
+
+//             <button
+//               style={styles.logoutBtn}
+//               onClick={handleLogout}
+//             >
+//               Logout
+//             </button>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// /* ========================= UPLOAD CENTER ========================= */
+
+// const UploadCenter = () => {
+//   const [publisher, setPublisher] = useState("");
+//   const [advertiser, setAdvertiser] = useState("");
+//   const [uploadedBy, setUploadedBy] = useState("");
+//   const [campaign, setCampaign] = useState("");
+//   const [customCampaign, setCustomCampaign] = useState("");
+//   const [uploading, setUploading] = useState(false);
+//   const [loading, setLoading] = useState(true);
+
+//   const [publishers, setPublishers] = useState([]);
+//   const [advertisers, setAdvertisers] = useState([]);
+//   const [uploaders, setUploaders] = useState([]);
+
+//   const campaigns = [
+//     "Select Campaign",
+//     "BigFest2025",
+//     "SummerSale",
+//     "Launch_X",
+//     "BrandAwareness",
+//     "Other",
+//   ];
+
+//   /* 🔥 FETCH DROPDOWN DATA */
+//   useEffect(() => {
+//     const token = JSON.parse(localStorage.getItem("jwt"))?.token;
+//     if (!token) return;
+
+//     Promise.all([
+//       axios.get("https://imediareports.onrender.com/api/publishers", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       }),
+//       axios.get("https://imediareports.onrender.com/api/advertisers", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       }),
+//       axios.get("https://imediareports.onrender.com/api/executives", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       }),
+//     ])
+//       .then(([p, a, u]) => {
+//         setPublishers(p.data);
+//         setAdvertisers(a.data);
+//         setUploaders(u.data);
+//       })
+//       .finally(() => setLoading(false));
+//   }, []);
+
+//   /* 📤 FILE UPLOAD */
+//   const handleFileUpload = (e) => {
+//     const file = e.target.files[0];
+//     if (!file) return;
+
+//     if (!publisher || !advertiser || !uploadedBy)
+//       return alert("Please fill all required fields");
+
+//     const finalCampaign =
+//       campaign === "Other" ? customCampaign.trim() : campaign;
+
+//     if (!finalCampaign || finalCampaign === "Select Campaign")
+//       return alert("Select campaign");
+
+//     setUploading(true);
+
+//     const reader = new FileReader();
+
+//     reader.onload = async (event) => {
+//       const workbook = XLSX.read(event.target.result, { type: "array" });
+
+//       const parsedSheets = workbook.SheetNames.map((name) => ({
+//         name: name.trim().toLowerCase(),
+//         original: name,
+//         data: XLSX.utils.sheet_to_json(workbook.Sheets[name], {
+//           defval: "",
+//         }),
+//       }));
+
+//       const genealogySheets = parsedSheets.filter((s) =>
+//         ["genealogy", "tree", "referral", "network", "lineage"].some((k) =>
+//           s.name.includes(k)
+//         )
+//       );
+
+//       const normalSheets = parsedSheets.filter(
+//         (s) =>
+//           !["genealogy", "tree", "referral", "network", "lineage"].some((k) =>
+//             s.name.includes(k)
+//           )
+//       );
+
+//       const token = JSON.parse(localStorage.getItem("jwt"))?.token;
+//       const uploaderObj = uploaders.find((u) => u._id === uploadedBy);
+
+//       const meta = {
+//         publisher_id: publisher._id,
+//         publisher: publisher.name,
+//         advertiser_id: advertiser._id,
+//         advertiser: advertiser.name,
+//         uploadedBy,
+//         uploadedByName: uploaderObj?.name,
+//         campaign: finalCampaign,
+//         uploadTime: new Date().toISOString(),
+//       };
+
+//       try {
+//         if (normalSheets.length > 0) {
+//           await axios.post(
+//             "https://imediareports.onrender.com/api/upload",
+//             { sheets: normalSheets, meta },
+//             { headers: { Authorization: `Bearer ${token}` } }
+//           );
+//         }
+
+//         if (genealogySheets.length > 0) {
+//           await axios.post(
+//             "https://imediareports.onrender.com/api/uploadGenealogy",
+//             { sheets: genealogySheets, meta },
+//             { headers: { Authorization: `Bearer ${token}` } }
+//           );
+//         }
+
+//         alert("📤 Upload Successful!");
+//       } catch (err) {
+//         alert("Upload failed");
+//       } finally {
+//         setUploading(false);
+//       }
+//     };
+
+//     reader.readAsArrayBuffer(file);
+//   };
+
+//   if (loading)
+//     return (
+//       <div style={styles.card}>
+//         <p>Loading dropdown data...</p>
+//       </div>
+//     );
+
+//   return (
+//     <div style={styles.card}>
+//       <h2 style={styles.title}>📊 AdOps Upload Center</h2>
+
+//       <div style={styles.grid}>
+//         <select
+//           style={styles.input}
+//           onChange={(e) =>
+//             setPublisher(
+//               publishers.find((p) => p._id === e.target.value)
+//             )
+//           }
+//         >
+//           <option value="">Select Publisher</option>
+//           {publishers.map((p) => (
+//             <option key={p._id} value={p._id}>
+//               {p.name}
+//             </option>
+//           ))}
+//         </select>
+
+//         <select
+//           style={styles.input}
+//           onChange={(e) =>
+//             setAdvertiser(
+//               advertisers.find((a) => a._id === e.target.value)
+//             )
+//           }
+//         >
+//           <option value="">Select Advertiser</option>
+//           {advertisers.map((a) => (
+//             <option key={a._id} value={a._id}>
+//               {a.name}
+//             </option>
+//           ))}
+//         </select>
+
+//         <select
+//           style={styles.input}
+//           onChange={(e) => setUploadedBy(e.target.value)}
+//         >
+//           <option value="">Uploaded By</option>
+//           {uploaders.map((u) => (
+//             <option key={u._id} value={u._id}>
+//               {u.name}
+//             </option>
+//           ))}
+//         </select>
+
+//         <select
+//           style={styles.input}
+//           value={campaign}
+//           onChange={(e) => setCampaign(e.target.value)}
+//         >
+//           {campaigns.map((c) => (
+//             <option key={c}>{c}</option>
+//           ))}
+//         </select>
+
+//         {campaign === "Other" && (
+//           <input
+//             style={styles.input}
+//             placeholder="Custom Campaign"
+//             onChange={(e) =>
+//               setCustomCampaign(e.target.value)
+//             }
+//           />
+//         )}
+
+//         <input type="file" onChange={handleFileUpload} />
+//       </div>
+
+//       <button
+//         style={styles.uploadBtn}
+//         disabled={uploading}
+//       >
+//         {uploading ? "Uploading..." : "🚀 Upload"}
+//       </button>
+//     </div>
+//   );
+// };
+
+// /* ========================= GENERIC SECTION ========================= */
+
+// const Section = ({ title }) => (
+//   <div style={styles.card}>
+//     <h2 style={styles.title}>{title}</h2>
+//     <p>Content coming soon...</p>
+//   </div>
+// );
+
+// /* ========================= STYLES ========================= */
+
+// const styles = {
+//   page: { background: "#EEF2FF", minHeight: "100vh" },
+
+//   topBar: {
+//     height: "64px",
+//     background: "#6D28D9",
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "space-between",
+//     padding: "0 30px",
+//     color: "#fff",
+//   },
+
+//   logo: { fontSize: "22px", fontWeight: "bold" },
+
+//   rightSection: {
+//     display: "flex",
+//     alignItems: "center",
+//     gap: "30px",
+//   },
+
+//   navLinks: { display: "flex", gap: "20px" },
+
+//   navLink: {
+//     cursor: "pointer",
+//     fontSize: "16px",
+//     color: "#fff",
+//   },
+
+//   activeNavLink: {
+//     color: "#DFFA33",
+//     fontWeight: 700,
+//   },
+
+//   profileCircle: {
+//     width: "40px",
+//     height: "40px",
+//     borderRadius: "50%",
+//     background: "#fff",
+//     color: "#6D28D9",
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     fontWeight: "bold",
+//     cursor: "pointer",
+//   },
+
+//   content: {
+//     padding: "50px",
+//     display: "flex",
+//     justifyContent: "center",
+//   },
+
+//   card: {
+//     background: "#fff",
+//     width: 720,
+//     padding: 36,
+//     borderRadius: 18,
+//     boxShadow: "0 8px 28px rgba(0,0,0,0.1)",
+//   },
+
+//   title: {
+//     textAlign: "center",
+//     marginBottom: 24,
+//     fontSize: "34px",
+//     fontWeight: 800,
+//   },
+
+//   grid: {
+//     display: "grid",
+//     gridTemplateColumns: "1fr 1fr",
+//     gap: 18,
+//   },
+
+//   input: {
+//     padding: 12,
+//     borderRadius: 8,
+//     border: "1px solid #d0d5dd",
+//   },
+
+//   uploadBtn: {
+//     marginTop: 20,
+//     padding: 14,
+//     background: "#6D28D9",
+//     color: "#fff",
+//     border: "none",
+//     borderRadius: 8,
+//     cursor: "pointer",
+//     fontWeight: 600,
+//   },
+
+//   modalOverlay: {
+//     position: "fixed",
+//     top: 0,
+//     left: 0,
+//     width: "100%",
+//     height: "100%",
+//     background: "rgba(0,0,0,0.4)",
+//     display: "flex",
+//     justifyContent: "center",
+//     alignItems: "center",
+//     zIndex: 999,
+//   },
+
+//   modal: {
+//     width: "360px",
+//     background: "#fff",
+//     borderRadius: "16px",
+//     padding: "30px",
+//     textAlign: "center",
+//   },
+
+//   modalAvatar: {
+//     width: "80px",
+//     height: "80px",
+//     borderRadius: "50%",
+//     background: "#6D28D9",
+//     color: "#fff",
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     margin: "0 auto 15px",
+//     fontSize: "28px",
+//     fontWeight: "bold",
+//   },
+
+//   logoutBtn: {
+//     background: "#ef4444",
+//     color: "#fff",
+//     border: "none",
+//     padding: "12px 20px",
+//     borderRadius: "8px",
+//     cursor: "pointer",
+//     fontWeight: 600,
+//   },
+// };
+
+// export default AdopsPanel;
 import React, { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import axios from "axios";
-import Navbar from "./AdopsNavbar";
 
 /* ========================= MAIN PANEL ========================= */
+
 const AdopsPanel = () => {
   const [activeSection, setActiveSection] = useState("Overview");
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+  });
+
+  useEffect(() => {
+    const jwt = JSON.parse(localStorage.getItem("jwt"));
+    const loggedUser = jwt?.user;
+
+    if (loggedUser) {
+      setUser({
+        name: loggedUser.name || "AdOps User",
+        email: loggedUser.email || "Not Available",
+      });
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("jwt");
+    window.location.href = "/login";
+  };
+
+  const sections = [
+    "Overview",
+    "Upload History",
+    "Sheet Validator",
+    "Approvals",
+  ];
 
   const renderSection = () => {
     switch (activeSection) {
       case "Overview":
         return <UploadCenter />;
-      case "Upload History":
-        return <Section title="📚 Upload History" />;
-      case "Sheet Validator":
-        return <Section title="🧪 Sheet Validator" />;
-      case "Error Logs":
-        return <Section title="⚠️ Error Logs" />;
-      case "Mapping Assistant":
-        return <Section title="🧩 Mapping Assistant" />;
-      case "Approvals":
-        return <Section title="✔ Approvals" />;
       default:
-        return <UploadCenter />;
+        return <Section title={activeSection} />;
     }
   };
 
   return (
     <div style={styles.page}>
-      <Navbar active={activeSection} setActive={setActiveSection} />
+      <div style={styles.topBar}>
+        <h2 style={styles.logo}>Ad-Operations Panel</h2>
+
+        <div style={styles.rightSection}>
+          <div style={styles.navLinks}>
+            {sections.map((sec) => (
+              <span
+                key={sec}
+                onClick={() => setActiveSection(sec)}
+                style={{
+                  ...styles.navLink,
+                  ...(activeSection === sec && styles.activeNavLink),
+                }}
+              >
+                {sec}
+              </span>
+            ))}
+          </div>
+
+          <div
+            style={styles.profileCircle}
+            onClick={() => setShowProfileModal(true)}
+          >
+            {user.name?.charAt(0)?.toUpperCase() || "A"}
+          </div>
+        </div>
+      </div>
+
       <div style={styles.content}>{renderSection()}</div>
+
+      {showProfileModal && (
+        <div
+          style={styles.modalOverlay}
+          onClick={() => setShowProfileModal(false)}
+        >
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalAvatar}>
+              {user.name?.charAt(0)?.toUpperCase() || "A"}
+            </div>
+
+            <h3 style={{ marginBottom: 8 }}>{user.name}</h3>
+            <p style={{ color: "#666", marginBottom: 20 }}>{user.email}</p>
+
+            <button style={styles.logoutBtn} onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 /* ========================= UPLOAD CENTER ========================= */
+
 const UploadCenter = () => {
   const [publisher, setPublisher] = useState("");
   const [advertiser, setAdvertiser] = useState("");
@@ -927,6 +1775,8 @@ const UploadCenter = () => {
   const [customCampaign, setCustomCampaign] = useState("");
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
 
   const [publishers, setPublishers] = useState([]);
   const [advertisers, setAdvertisers] = useState([]);
@@ -964,9 +1814,13 @@ const UploadCenter = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+  const processFile = (file) => {
     if (!file) return;
+    setSelectedFile(file);
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return alert("Please select a file");
 
     if (!publisher || !advertiser || !uploadedBy)
       return alert("Please fill all required fields");
@@ -980,13 +1834,16 @@ const UploadCenter = () => {
     setUploading(true);
 
     const reader = new FileReader();
+
     reader.onload = async (event) => {
       const workbook = XLSX.read(event.target.result, { type: "array" });
 
       const parsedSheets = workbook.SheetNames.map((name) => ({
         name: name.trim().toLowerCase(),
         original: name,
-        data: XLSX.utils.sheet_to_json(workbook.Sheets[name], { defval: "" }),
+        data: XLSX.utils.sheet_to_json(workbook.Sheets[name], {
+          defval: "",
+        }),
       }));
 
       const genealogySheets = parsedSheets.filter((s) =>
@@ -1033,7 +1890,8 @@ const UploadCenter = () => {
           );
         }
 
-        alert("📤 Upload Successful!");
+        alert("Upload Successful!");
+        setSelectedFile(null);
       } catch (err) {
         alert("Upload failed");
       } finally {
@@ -1041,43 +1899,69 @@ const UploadCenter = () => {
       }
     };
 
-    reader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(selectedFile);
   };
 
-  if (loading) return <SkeletonCard />;
+  if (loading)
+    return (
+      <div style={styles.card}>
+        <p>Loading dropdown data...</p>
+      </div>
+    );
 
   return (
     <div style={styles.card}>
-      <h2 style={styles.title}>📊 AdOps Upload Center</h2>
+      <h2 style={styles.title}>AdOps Upload Center</h2>
 
       <div style={styles.grid}>
-        <select style={styles.input} onChange={(e) =>
-          setPublisher(publishers.find((p) => p._id === e.target.value))
-        }>
+        <select
+          style={styles.input}
+          onChange={(e) =>
+            setPublisher(publishers.find((p) => p._id === e.target.value))
+          }
+        >
           <option value="">Select Publisher</option>
           {publishers.map((p) => (
-            <option key={p._id} value={p._id}>{p.name}</option>
+            <option key={p._id} value={p._id}>
+              {p.name}
+            </option>
           ))}
         </select>
 
-        <select style={styles.input} onChange={(e) =>
-          setAdvertiser(advertisers.find((a) => a._id === e.target.value))
-        }>
+        <select
+          style={styles.input}
+          onChange={(e) =>
+            setAdvertiser(advertisers.find((a) => a._id === e.target.value))
+          }
+        >
           <option value="">Select Advertiser</option>
           {advertisers.map((a) => (
-            <option key={a._id} value={a._id}>{a.name}</option>
+            <option key={a._id} value={a._id}>
+              {a.name}
+            </option>
           ))}
         </select>
 
-        <select style={styles.input} onChange={(e) => setUploadedBy(e.target.value)}>
+        <select
+          style={styles.input}
+          onChange={(e) => setUploadedBy(e.target.value)}
+        >
           <option value="">Uploaded By</option>
           {uploaders.map((u) => (
-            <option key={u._id} value={u._id}>{u.name}</option>
+            <option key={u._id} value={u._id}>
+              {u.name}
+            </option>
           ))}
         </select>
 
-        <select style={styles.input} value={campaign} onChange={(e) => setCampaign(e.target.value)}>
-          {campaigns.map((c) => <option key={c}>{c}</option>)}
+        <select
+          style={styles.input}
+          value={campaign}
+          onChange={(e) => setCampaign(e.target.value)}
+        >
+          {campaigns.map((c) => (
+            <option key={c}>{c}</option>
+          ))}
         </select>
 
         {campaign === "Other" && (
@@ -1087,56 +1971,124 @@ const UploadCenter = () => {
             onChange={(e) => setCustomCampaign(e.target.value)}
           />
         )}
-
-        <input type="file" onChange={handleFileUpload} />
       </div>
 
-      <button style={styles.button} disabled={uploading}>
-        {uploading ? "Uploading..." : "🚀 Upload"}
+      <div
+        style={{
+          marginTop: 30,
+          padding: 40,
+          borderRadius: 16,
+          border: dragActive
+            ? "2px solid #6D28D9"
+            : "2px dashed #cbd5e1",
+          background: dragActive ? "#f5f3ff" : "#fafafa",
+          textAlign: "center",
+          transition: "all 0.2s ease",
+          cursor: "pointer",
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragActive(true);
+        }}
+        onDragLeave={() => setDragActive(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragActive(false);
+          processFile(e.dataTransfer.files[0]);
+        }}
+        onClick={() => document.getElementById("hiddenFile").click()}
+      >
+        <input
+          id="hiddenFile"
+          type="file"
+          style={{ display: "none" }}
+          onChange={(e) => processFile(e.target.files[0])}
+        />
+
+        <div style={{ fontSize: 40, marginBottom: 12 }}>📁</div>
+
+        <p style={{ fontSize: 18, fontWeight: 600 }}>
+          Drag & Drop Excel File Here
+        </p>
+
+        <p style={{ color: "#64748b", marginTop: 6 }}>
+          or click to browse
+        </p>
+
+        {selectedFile && (
+          <div
+            style={{
+              marginTop: 18,
+              padding: 10,
+              background: "#e0e7ff",
+              borderRadius: 8,
+              fontSize: 14,
+            }}
+          >
+            Selected: {selectedFile.name}
+          </div>
+        )}
+      </div>
+
+      <button
+        style={{
+          ...styles.uploadBtn,
+          opacity: uploading ? 0.7 : 1,
+          marginTop: 30,
+        }}
+        disabled={uploading}
+        onClick={handleFileUpload}
+      >
+        {uploading ? "Uploading..." : "Upload File"}
       </button>
     </div>
   );
 };
 
-/* ========================= SKELETON ========================= */
-const SkeletonCard = () => (
-  <div style={{ ...styles.card, background: "#f3f4f6" }}>
-    <div className="skeleton" />
-    <style>
-      {`
-        .skeleton {
-          height: 260px;
-          border-radius: 14px;
-          background: linear-gradient(
-            90deg,
-            #e5e7eb 25%,
-            #f3f4f6 37%,
-            #e5e7eb 63%
-          );
-          background-size: 400% 100%;
-          animation: shimmer 1.4s infinite;
-        }
-        @keyframes shimmer {
-          0% { background-position: 100% 0 }
-          100% { background-position: -100% 0 }
-        }
-      `}
-    </style>
-  </div>
-);
+/* ========================= GENERIC SECTION ========================= */
 
-/* ========================= SECTION ========================= */
 const Section = ({ title }) => (
   <div style={styles.card}>
     <h2 style={styles.title}>{title}</h2>
-    <p style={{ fontSize: "18px" }}>Content coming soon...</p>
+    <p>Content coming soon...</p>
   </div>
 );
 
 /* ========================= STYLES ========================= */
+
 const styles = {
   page: { background: "#EEF2FF", minHeight: "100vh" },
-  content: { padding: "50px", display: "flex", justifyContent: "center" },
+  topBar: {
+    height: "64px",
+    background: "#6D28D9",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0 30px",
+    color: "#fff",
+  },
+  logo: { fontSize: "22px", fontWeight: "bold" },
+  rightSection: { display: "flex", alignItems: "center", gap: "30px" },
+  navLinks: { display: "flex", gap: "20px" },
+  navLink: { cursor: "pointer", fontSize: "16px", color: "#fff" },
+  activeNavLink: { color: "#DFFA33", fontWeight: 700 },
+  profileCircle: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    background: "#fff",
+    color: "#6D28D9",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "bold",
+    cursor: "pointer",
+  },
+  content: {
+    padding: "50px",
+    display: "flex",
+    justifyContent: "center",
+  },
   card: {
     background: "#fff",
     width: 720,
@@ -1156,21 +2108,59 @@ const styles = {
     gap: 18,
   },
   input: {
-    padding: 14,
-    fontSize: "18px",
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 8,
     border: "1px solid #d0d5dd",
   },
-  button: {
-    marginTop: 28,
-    padding: 16,
-    fontSize: "20px",
-    borderRadius: 10,
-    border: "none",
+  uploadBtn: {
+    padding: 14,
     background: "#6D28D9",
     color: "#fff",
-    fontWeight: 800,
+    border: "none",
+    borderRadius: 8,
     cursor: "pointer",
+    fontWeight: 600,
+  },
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.4)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
+  },
+  modal: {
+    width: "360px",
+    background: "#fff",
+    borderRadius: "16px",
+    padding: "30px",
+    textAlign: "center",
+  },
+  modalAvatar: {
+    width: "80px",
+    height: "80px",
+    borderRadius: "50%",
+    background: "#6D28D9",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 15px",
+    fontSize: "28px",
+    fontWeight: "bold",
+  },
+  logoutBtn: {
+    background: "#ef4444",
+    color: "#fff",
+    border: "none",
+    padding: "12px 20px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: 600,
   },
 };
 

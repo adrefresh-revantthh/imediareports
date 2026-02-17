@@ -138,61 +138,258 @@
 
 
 // export default PublisherPanel;
-import React, { useState } from "react";
+
+// import React, { useState } from "react";
+// import Dashboard from "./PublisherDashboard";
+// import Uploads from "./PublisherUploads";
+// import Earnings from "./Earnings";
+// import Settings from "./PublisherSettings";
+// import { useNavigate } from "react-router-dom";
+// import PublisherProfileCard from "./PublisherDetails";
+
+// const PublisherPanel = () => {
+//   const [activeTab, setActiveTab] = useState("dashboard");
+//   const navigate = useNavigate();
+
+//   return (
+//     <div style={styles.wrapper}>
+//       {/* TOP NAVBAR */}
+//       <nav style={styles.navbar}>
+//         <div style={styles.navLeft}>
+       
+
+//           <span style={styles.logo} onClick={() => navigate(-1)}>Publisher Panel</span>
+
+//           {["Overview", "Reports", "earnings", "settings"].map((tab) => (
+//             <button
+//               key={tab}
+//               onClick={() => setActiveTab(tab)}
+//               style={{
+//                 ...styles.navItem,
+//                 ...(activeTab === tab && styles.activeNavItem),
+//               }}
+//             >
+//               {tab.charAt(0).toUpperCase() + tab.slice(1)}
+//             </button>
+//           ))}
+//         </div>
+//       </nav>
+
+//       {/* MAIN CONTENT */}
+//       <main style={styles.main}>
+//          <PublisherProfileCard/>
+//         {activeTab === "Overview" && <Dashboard />}
+       
+//         {activeTab === "Reports" && <Uploads />}
+//         {activeTab === "earnings" && <Earnings />}
+//         {activeTab === "settings" && <Settings />}
+//       </main>
+//     </div>
+//   );
+// };
+
+// export default PublisherPanel;
+// const styles = {
+//   wrapper: {
+//     minHeight: "100vh",
+//     background: "#f4f6f8",
+//     fontFamily: "Cabinet Grotesk, sans-serif",
+//   },
+
+//   navbar: {
+//     height: "64px",
+//     background: "#813Dff",
+//     display: "flex",
+//     alignItems: "center",
+//     padding: "0 20px",
+//     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+//   },
+
+//   navLeft: {
+//     display: "flex",
+//     alignItems: "center",
+//     gap: "14px",
+//   },
+
+//   backBtn: {
+//     background: "#fff",
+//     color: "#01303f",
+//     border: "none",
+//     borderRadius: "6px",
+//     padding: "6px 12px",
+//     fontWeight: 600,
+//     cursor: "pointer",
+//   },
+
+//   logo: {
+//     color: "#fff",
+//     fontSize: "28px",
+//     fontWeight: 700,
+//     marginRight: "10px",
+//   },
+
+//   navItem: {
+//     background: "transparent",
+//     border: "none",
+//     color: "#fff",
+//     padding: "6px 12px",
+//     fontSize: "18px",
+//     borderRadius: "6px",
+//     cursor: "pointer",
+//     fontWeight: 500,
+//     transition: "0.3s",
+//   },
+
+//   activeNavItem: {
+//     background: "#dffa33",
+//     color: "black",
+//     fontWeight: 600,
+//   },
+
+//   main: {
+//     padding: "24px",
+//   },
+// };
+import React, { useState, useEffect } from "react";
 import Dashboard from "./PublisherDashboard";
 import Uploads from "./PublisherUploads";
 import Earnings from "./Earnings";
 import Settings from "./PublisherSettings";
-import { useNavigate } from "react-router-dom";
 import PublisherProfileCard from "./PublisherDetails";
+import { useNavigate } from "react-router-dom";
 
 const PublisherPanel = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState("Overview");
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const navigate = useNavigate();
+
+  // ✅ Real logged-in publisher
+  const [publisher, setPublisher] = useState({
+    name: "",
+    email: "",
+  });
+
+  useEffect(() => {
+    const jwt = JSON.parse(localStorage.getItem("jwt"));
+    const user = jwt?.user;
+
+    if (user) {
+      setPublisher({
+        name: user.name || "Unknown Publisher",
+        email: user.email || "Not Available",
+      });
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("jwt");
+    navigate("/login");
+  };
+
+  const renderTab = () => {
+    switch (activeTab) {
+      case "Overview":
+        return <Dashboard />;
+      case "Reports":
+        return <Uploads />;
+      case "Earnings":
+        return <Earnings />;
+      case "Settings":
+        return <Settings />;
+      default:
+        return <Dashboard />;
+    }
+  };
 
   return (
     <div style={styles.wrapper}>
-      {/* TOP NAVBAR */}
+      {/* NAVBAR */}
       <nav style={styles.navbar}>
-        <div style={styles.navLeft}>
-       
+        <span
+          style={styles.logo}
+          onClick={() => navigate(-1)}
+        >
+          Publisher Panel
+        </span>
 
-          <span style={styles.logo} onClick={() => navigate(-1)}>Publisher Panel</span>
+        <div style={styles.rightSection}>
+          {/* Nav Links */}
+          <div style={styles.navLinks}>
+            {["Overview", "Reports", "Earnings", "Settings"].map(
+              (tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  style={{
+                    ...styles.navItem,
+                    ...(activeTab === tab &&
+                      styles.activeNavItem),
+                  }}
+                >
+                  {tab}
+                </button>
+              )
+            )}
+          </div>
 
-          {["Overview", "Reports", "earnings", "settings"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                ...styles.navItem,
-                ...(activeTab === tab && styles.activeNavItem),
-              }}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+          {/* Profile Circle */}
+          <div
+            style={styles.profileCircle}
+            onClick={() => setShowProfileModal(true)}
+          >
+            {publisher.name?.charAt(0)?.toUpperCase() || "P"}
+          </div>
         </div>
       </nav>
 
-      {/* MAIN CONTENT */}
+      {/* PROFILE MODAL */}
+      {showProfileModal && (
+        <div
+          style={styles.modalOverlay}
+          onClick={() => setShowProfileModal(false)}
+        >
+          <div
+            style={styles.modal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={styles.modalAvatar}>
+              {publisher.name?.charAt(0)?.toUpperCase() || "P"}
+            </div>
+
+            <h3 style={{ marginBottom: "8px" }}>
+              {publisher.name}
+            </h3>
+            <p style={{ color: "#666", marginBottom: "20px" }}>
+              {publisher.email}
+            </p>
+
+            <button
+              style={styles.logoutBtn}
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MAIN */}
       <main style={styles.main}>
-         <PublisherProfileCard/>
-        {activeTab === "Overview" && <Dashboard />}
-       
-        {activeTab === "Reports" && <Uploads />}
-        {activeTab === "earnings" && <Earnings />}
-        {activeTab === "settings" && <Settings />}
+        <PublisherProfileCard />
+        {renderTab()}
       </main>
     </div>
   );
 };
 
 export default PublisherPanel;
+
+/* ================= STYLES ================= */
+
 const styles = {
   wrapper: {
     minHeight: "100vh",
     background: "#f4f6f8",
-    fontFamily: "Cabinet Grotesk, sans-serif",
   },
 
   navbar: {
@@ -200,31 +397,27 @@ const styles = {
     background: "#813Dff",
     display: "flex",
     alignItems: "center",
+    justifyContent: "space-between",
     padding: "0 20px",
     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
   },
 
-  navLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "14px",
-  },
-
-  backBtn: {
-    background: "#fff",
-    color: "#01303f",
-    border: "none",
-    borderRadius: "6px",
-    padding: "6px 12px",
-    fontWeight: 600,
+  logo: {
+    color: "#fff",
+    fontSize: "24px",
+    fontWeight: 700,
     cursor: "pointer",
   },
 
-  logo: {
-    color: "#fff",
-    fontSize: "28px",
-    fontWeight: 700,
-    marginRight: "10px",
+  rightSection: {
+    display: "flex",
+    alignItems: "center",
+    gap: "20px",
+  },
+
+  navLinks: {
+    display: "flex",
+    gap: "12px",
   },
 
   navItem: {
@@ -232,10 +425,9 @@ const styles = {
     border: "none",
     color: "#fff",
     padding: "6px 12px",
-    fontSize: "18px",
+    fontSize: "16px",
     borderRadius: "6px",
     cursor: "pointer",
-    fontWeight: 500,
     transition: "0.3s",
   },
 
@@ -245,7 +437,66 @@ const styles = {
     fontWeight: 600,
   },
 
+  profileCircle: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    background: "#fff",
+    color: "#813Dff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "bold",
+    cursor: "pointer",
+  },
+
   main: {
     padding: "24px",
+  },
+
+  /* MODAL */
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.4)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
+  },
+
+  modal: {
+    width: "350px",
+    background: "#fff",
+    borderRadius: "12px",
+    padding: "30px",
+    textAlign: "center",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+  },
+
+  modalAvatar: {
+    width: "80px",
+    height: "80px",
+    borderRadius: "50%",
+    background: "#813Dff",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 15px",
+    fontSize: "28px",
+    fontWeight: "bold",
+  },
+
+  logoutBtn: {
+    background: "#ff4d4f",
+    color: "#fff",
+    border: "none",
+    padding: "10px 20px",
+    borderRadius: "8px",
+    cursor: "pointer",
   },
 };

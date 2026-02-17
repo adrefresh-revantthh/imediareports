@@ -776,6 +776,237 @@
 //     <div className="skeleton skeleton-metric" />
 //   </div>
 // );
+
+// import React, { useEffect, useState } from "react";
+// import "./mtd.css";
+// import { useNavigate } from "react-router-dom";
+// import SheetTable from "./Mtd-Detail";
+
+// /* ✅ ALWAYS USE /exec URL */
+// const SHEET_API_URL =
+//   "https://script.google.com/macros/s/AKfycbzXkMSTGvDmbK5D3JBT6MbaYPcJqLFlJq1truRqnbD0oPmH6rzqrfkWmukzba_GL3ff8Q/exec";
+
+// /* ================= HELPERS ================= */
+
+// const normalize = (v) =>
+//   String(v || "")
+//     .replace(/\u00A0/g, " ")
+//     .replace(/\s+/g, " ")
+//     .trim()
+//     .toLowerCase();
+
+// const money = (v) =>
+//   v
+//     ? `$${Number(v).toLocaleString("en-US", {
+//         minimumFractionDigits: 2,
+//       })}`
+//     : "$0.00";
+
+// /* ================= COMPONENT ================= */
+
+// const AdvertiserDashboardHeader = () => {
+//   const navigate = useNavigate();
+
+//   const [metrics, setMetrics] = useState({
+//     booked: "$0.00",
+//     mtd: "$0.00",
+//     forecasted: "$0.00",
+//     earned: "$0.00",
+//     projected: "$0.00",
+//   });
+
+//   const [loading, setLoading] = useState(true);
+//   const [selectedMetric, setSelectedMetric] = useState(null);
+
+//   const jwt = JSON.parse(localStorage.getItem("jwt"));
+//   const userName = jwt?.user?.name || "User";
+
+//   useEffect(() => {
+//     if (!userName) return;
+
+//     async function fetchSheetData() {
+//       try {
+//         const res = await fetch(SHEET_API_URL);
+//         const text = await res.text();
+//         const rows = JSON.parse(text);
+
+//         if (!Array.isArray(rows)) return;
+
+//         const salesHeaderIndex = rows.findIndex((row) =>
+//           row.some((cell) => normalize(cell) === "sales rep")
+//         );
+
+//         if (salesHeaderIndex === -1) return;
+
+//         const dataRows = rows.slice(salesHeaderIndex + 1);
+
+//         const userRow = dataRows.find(
+//           (row) => normalize(row[1]) === normalize(userName)
+//         );
+
+//         if (!userRow) return;
+
+//         setMetrics({
+//           booked: money(userRow[2]),
+//           mtd: money(userRow[3]),
+//           forecasted: money(userRow[4]),
+//           earned: money(userRow[5]),
+//           projected: money(userRow[6]),
+//         });
+//       } catch (err) {
+//         console.error("Sheet fetch failed", err);
+//       } finally {
+//         setLoading(false);
+//       }
+//     }
+
+//     fetchSheetData();
+//   }, [userName]);
+
+//   return (
+//     <div className="adv-dashboard">
+//       {/* ================= NAVBAR ================= */}
+//       <div className="adv-navbar">
+//         <span className="adv-navbar-title">MTD Dashboard</span>
+//       </div>
+
+//       {/* Welcome */}
+//       <div className="welcome-card">
+//         {loading ? (
+//           <div className="skeleton skeleton-text-lg" />
+//         ) : (
+//           <p className="welcome-text">
+//             Welcome <span>{userName}</span>
+//           </p>
+//         )}
+//       </div>
+
+//       {/* Metrics */}
+//       <div className="metric-row">
+//         {loading ? (
+//           Array.from({ length: 5 }).map((_, i) => (
+//             <SkeletonMetricCard key={i} />
+//           ))
+//         ) : (
+//           <>
+//             <MetricCard
+//               title="Booked Revenue"
+//               value={metrics.booked}
+//               color="yellow"
+//               onClick={() => setSelectedMetric("booked")}
+//             />
+//             <MetricCard
+//               title="MTD Revenue"
+//               value={metrics.mtd}
+//               color="green"
+//               onClick={() => setSelectedMetric("mtd")}
+//             />
+//             <MetricCard
+//               title="Forecasted Revenue"
+//               value={metrics.forecasted}
+//               color="red"
+//               onClick={() => setSelectedMetric("forecasted")}
+//             />
+//             <MetricCard
+//               title="Earned Commission"
+//               value={metrics.earned}
+//               color="blue"
+//               onClick={() => setSelectedMetric("earned")}
+//             />
+//             <MetricCard
+//               title="Projected Commission"
+//               value={metrics.projected}
+//               color="sky"
+//               onClick={() => setSelectedMetric("projected")}
+//             />
+//           </>
+//         )}
+//       </div>
+
+//       {/* Details */}
+//       {selectedMetric && !loading && (
+//         <div style={{ marginTop: "30px" }}>
+//           <SheetTable selectedMetric={selectedMetric} />
+//         </div>
+//       )}
+
+//       {/* ================= STYLES ================= */}
+//       <style>
+//         {`
+//           /* Navbar */
+//           .adv-navbar {
+//             height: 80px;
+//             background: #ffffff;
+//             border-bottom: 1px solid #e5e7eb;
+//             display: flex;
+//             align-items: center;
+//             padding: 0 34px;
+//             margin-bottom: 20px;
+//           }
+
+//           .adv-navbar-title {
+//             font-size: 46px;
+//             font-weight: 600;
+//             color: #111827;
+//             text-align:center;
+//           }
+
+//           /* Skeleton */
+//           .skeleton {
+//             background: linear-gradient(
+//               90deg,
+//               #e5e7eb 25%,
+//               #f3f4f6 37%,
+//               #e5e7eb 63%
+//             );
+//             background-size: 400% 100%;
+//             animation: shimmer 1.4s ease infinite;
+//             border-radius: 8px;
+//           }
+
+//           .skeleton-text-lg {
+//             height: 22px;
+//             width: 220px;
+//           }
+
+//           .skeleton-metric {
+//             height: 90px;
+//             width: 180px;
+//             border-radius: 14px;
+//           }
+
+//           @keyframes shimmer {
+//             0% { background-position: 100% 0; }
+//             100% { background-position: -100% 0; }
+//           }
+//         `}
+//       </style>
+//     </div>
+//   );
+// };
+
+// export default AdvertiserDashboardHeader;
+
+// /* ================= CARDS ================= */
+
+// const MetricCard = ({ title, value, color, onClick }) => (
+//   <div
+//     className={`metric-card ${color}`}
+//     onClick={onClick}
+//     style={{ cursor: "pointer" }}
+//   >
+//     <h2>{value}</h2>
+//     <p>{title}</p>
+//   </div>
+// );
+
+// /* ================= SKELETON CARD ================= */
+
+// const SkeletonMetricCard = () => (
+//   <div className="metric-card">
+//     <div className="skeleton skeleton-metric" />
+//   </div>
+// );
 import React, { useEffect, useState } from "react";
 import "./mtd.css";
 import { useNavigate } from "react-router-dom";
@@ -817,8 +1048,17 @@ const AdvertiserDashboardHeader = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMetric, setSelectedMetric] = useState(null);
 
+  // ✅ ONLY NEW STATE
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
   const jwt = JSON.parse(localStorage.getItem("jwt"));
   const userName = jwt?.user?.name || "User";
+  const userEmail = jwt?.user?.email || "Not Available";
+
+  const handleLogout = () => {
+    localStorage.removeItem("jwt");
+    window.location.href = "/login";
+  };
 
   useEffect(() => {
     if (!userName) return;
@@ -867,6 +1107,14 @@ const AdvertiserDashboardHeader = () => {
       {/* ================= NAVBAR ================= */}
       <div className="adv-navbar">
         <span className="adv-navbar-title">MTD Dashboard</span>
+
+        {/* ✅ Profile circle added */}
+        <div
+          className="profile-circle"
+          onClick={() => setShowProfileModal(true)}
+        >
+          {userName.charAt(0).toUpperCase()}
+        </div>
       </div>
 
       {/* Welcome */}
@@ -929,16 +1177,40 @@ const AdvertiserDashboardHeader = () => {
         </div>
       )}
 
+      {/* ================= PROFILE MODAL ================= */}
+      {showProfileModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowProfileModal(false)}
+        >
+          <div
+            className="modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-avatar">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+
+            <h3>{userName}</h3>
+            <p>{userEmail}</p>
+
+            <button className="logout-btn" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ================= STYLES ================= */}
       <style>
         {`
-          /* Navbar */
           .adv-navbar {
             height: 80px;
-            background: #ffffff;
+            background: #6D28D9;
             border-bottom: 1px solid #e5e7eb;
             display: flex;
             align-items: center;
+            justify-content: space-between;
             padding: 0 34px;
             margin-bottom: 20px;
           }
@@ -946,11 +1218,65 @@ const AdvertiserDashboardHeader = () => {
           .adv-navbar-title {
             font-size: 46px;
             font-weight: 600;
-            color: #111827;
+            color: white;
             text-align:center;
           }
 
-          /* Skeleton */
+          .profile-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: black;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+          }
+
+          .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+          }
+
+          .modal {
+            width: 360px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+          }
+
+          .modal-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #6D28D9;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 28px;
+            font-weight: bold;
+          }
+
+          .logout-btn {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+          }
+
           .skeleton {
             background: linear-gradient(
               90deg,
@@ -998,8 +1324,6 @@ const MetricCard = ({ title, value, color, onClick }) => (
     <p>{title}</p>
   </div>
 );
-
-/* ================= SKELETON CARD ================= */
 
 const SkeletonMetricCard = () => (
   <div className="metric-card">
