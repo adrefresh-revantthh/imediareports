@@ -245,23 +245,152 @@ const Dashboard = () => {
       </div>
 
       {/* SUMMARY */}
-      <div className="summaryWrapper">
-  <div className="summaryCard views">
-    <h4>Total Views</h4>
-    <p>{totals.views}</p>
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+    gap: 10,
+    marginBottom: 25,
+  }}
+>
+  {/* Views */}
+  <div
+    style={{
+      background: "linear-gradient(135deg, #ffffff, #f9f9ff)",
+      borderRadius: 5,
+      padding: 10,
+      boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+      transition: "0.3s ease",
+      cursor: "pointer",
+      position: "relative",
+      overflow: "hidden",
+      borderLeft: "6px solid #4facfe",
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = "translateY(-6px)";
+      e.currentTarget.style.boxShadow =
+        "0 15px 35px rgba(0,0,0,0.15)";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = "translateY(0)";
+      e.currentTarget.style.boxShadow =
+        "0 10px 25px rgba(0,0,0,0.08)";
+    }}
+  >
+    <h4
+      style={{
+        fontSize: 15,
+        fontWeight: 600,
+        color: "#666",
+        marginBottom: 8,
+      }}
+    >
+      Total Views
+    </h4>
+    <p
+      style={{
+        fontSize: 28,
+        fontWeight: "bold",
+        color: "#222",
+        margin: 0,
+      }}
+    >
+      {totals.views}
+    </p>
   </div>
 
-  <div className="summaryCard clicks">
-    <h4>Total Clicks</h4>
-    <p>{totals.clicks}</p>
+  {/* Clicks */}
+  <div
+    style={{
+      background: "linear-gradient(135deg, #ffffff, #f9f9ff)",
+      borderRadius: 5,
+      padding: 10,
+      boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+      transition: "0.3s ease",
+      cursor: "pointer",
+      position: "relative",
+      overflow: "hidden",
+      borderLeft: "6px solid #43e97b",
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = "translateY(-6px)";
+      e.currentTarget.style.boxShadow =
+        "0 15px 35px rgba(0,0,0,0.15)";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = "translateY(0)";
+      e.currentTarget.style.boxShadow =
+        "0 10px 25px rgba(0,0,0,0.08)";
+    }}
+  >
+    <h4
+      style={{
+        fontSize: 15,
+        fontWeight: 600,
+        color: "#666",
+        marginBottom: 8,
+      }}
+    >
+      Total Clicks
+    </h4>
+    <p
+      style={{
+        fontSize: 28,
+        fontWeight: "bold",
+        color: "#222",
+        margin: 0,
+      }}
+    >
+      {totals.clicks}
+    </p>
   </div>
 
-  <div className="summaryCard revenue">
-    <h4>Total Revenue</h4>
-    <p>${totals.revenue}</p>
+  {/* Revenue */}
+  <div
+    style={{
+      background: "linear-gradient(135deg, #ffffff, #f9f9ff)",
+      borderRadius: 5,
+      padding: 10,
+      boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+      transition: "0.3s ease",
+      cursor: "pointer",
+      position: "relative",
+      overflow: "hidden",
+      borderLeft: "6px solid #ff6a88",
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = "translateY(-6px)";
+      e.currentTarget.style.boxShadow =
+        "0 15px 35px rgba(0,0,0,0.15)";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = "translateY(0)";
+      e.currentTarget.style.boxShadow =
+        "0 10px 25px rgba(0,0,0,0.08)";
+    }}
+  >
+    <h4
+      style={{
+        fontSize: 15,
+        fontWeight: 600,
+        color: "#666",
+        marginBottom: 8,
+      }}
+    >
+      Total Revenue
+    </h4>
+    <p
+      style={{
+        fontSize: 28,
+        fontWeight: "bold",
+        color: "#222",
+        margin: 0,
+      }}
+    >
+      ${totals.revenue}
+    </p>
   </div>
 </div>
-
       {/* CHARTS */}
       <div style={{ display: "flex", gap: "20px" }}>
         <div style={{ flex: 1, background: "#fff", padding: "20px" }}>
