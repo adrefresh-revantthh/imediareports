@@ -20,7 +20,7 @@ import {
   getAdvertisers,
   getPublishers,
   getExecutives,
-
+  heartbeat,
 } from "../controllers/sheetController.js";
 
 import { verifyToken } from "../authMiddleware/authMiddleware.js";
@@ -104,7 +104,7 @@ router.get("/login-history", verifyToken, getLoginHistory);
 /* ---------------------------------------------------
    ✔ ONLINE + BLOCKED USERS
 --------------------------------------------------- */
-router.get("/online-users", getOnlineUsers);
+router.get("/online-users", verifyToken, getOnlineUsers);
 router.get("/blocked-users", getBlockedUsers);
 router.post("/block-user/:username", verifyToken, blockUser);
 router.post("/unblock-user/:username", verifyToken, unblockUser);
@@ -119,5 +119,14 @@ router.get("/executives", getExecutives);
 /* ---------------------------------------------------
    🔵 FIXED HEARTBEAT ROUTE — JSON BODY + CORS OK
 --------------------------------------------------- */
+router.post(
+  "/heartbeat",
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+  express.json(),      // <-- FIXED (was text parser)
+  heartbeat            // <-- Controller
+);
 
 export default router;
