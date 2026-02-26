@@ -255,7 +255,7 @@
 // const SkeletonBlock = () => <div className="skeleton" />;
 import React, { useEffect, useState, useContext } from "react";
 import LoginActivity from "./LoginActivity";
-import FailedLoginAttempts from "./FailedLoginAttempts";
+// import FailedLoginAttempts from "./FailedLoginAttempts";
 import OnlineUsers from "./Onlineuser";
 import BlockedUsers from "./BlockedUsers";
 import { ThemeContext } from "../ThemeSettings/ThemeContext";
@@ -305,9 +305,7 @@ export default function SecurityInsights() {
         {loading ? <SkeletonBlock /> : <OnlineUsers />}
       </SectionCard>
 
-      <SectionCard themeColors={themeColors}>
-        {loading ? <SkeletonBlock /> : <FailedLoginAttempts />}
-      </SectionCard>
+    
 
       <SectionCard themeColors={themeColors}>
         {loading ? <SkeletonBlock /> : <LoginActivity />}
