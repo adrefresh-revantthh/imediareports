@@ -781,20 +781,51 @@ export const getExecutives = async (req, res) => {
   }
 };
 
-export const getOnlineUsers = async (req, res) => {
-  try {
-    const users = await User.find(
-      {},
-      "name email role isOnline lastActive"
-    ).sort({ isOnline: -1, lastActive: -1 });
 
-    res.status(200).json({
-      message: "Online status fetched",
-      users,
-      onlineCount: users.filter((u) => u.isOnline).length,
-    });
-  } catch (error) {
-    console.error("getOnlineUsers error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+export const heartbeat = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: "Token missing" });
+    }
+
+    // verify token
+    const decoded = jwt.verify(token, SECRET_KEY);
+
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // 🔵 Update online state
+    user.isOnline = true;
+    user.lastActive = new Date();
+    await user.save();
+
+    return res.status(200).json({ message: "Heartbeat received" });
+  } catch (err) {
+    console.error("Heartbeat error:", err.message);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+const AUTO_OFFLINE_MS = 5000; // 20 seconds
+
+export const autoOfflineScan = async () => {
+  try {
+    const users = await User.find();
+
+    const now = Date.now();
+
+    for (let user of users) {
+      if (user.isOnline && user.lastActive) {
+        const diff = now - new Date(user.lastActive).getTime();
+
+        if (diff > AUTO_OFFLINE_MS) {
+          user.isOnline = false;
+          await user.save();
+        }
+      }
+    }
+  } catch (err) {
+    console.log("Auto-offline error:", err.message);
   }
 };
