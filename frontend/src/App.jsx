@@ -1,10 +1,10 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import MainDashboard from "./AdvertiserPanelPagesComponents/RealDashBoard";
-import OTTReport from "./AdvertiserPanelPagesComponents/OttReport";
-import VideoReport from "./AdvertiserPanelPagesComponents/NewVideoReport";
-import AdWidget from "./AdvertiserPanelPagesComponents/Advertise";
-import SummaryReport from "./AdvertiserPanelPagesComponents/Summary";
+// import MainDashboard from "./AdvertiserPanelPagesComponents/RealDashBoard";
+// import OTTReport from "./AdvertiserPanelPagesComponents/OttReport";
+// import VideoReport from "./AdvertiserPanelPagesComponents/NewVideoReport";
+// import AdWidget from "./AdvertiserPanelPagesComponents/Advertise";
+// import SummaryReport from "./AdvertiserPanelPagesComponents/Summary";
 
 import Signup from "./LoginAndSignupPages/Signup";
 import Login from "./LoginAndSignupPages/Login";
@@ -13,12 +13,12 @@ import AdminPanel from "./AdminPanelPagesComponents/AdminPanel";
 import AdvertiserPanel from "./AdvertiserPanelPagesComponents/AdvertiserPanel";
 
 import PublisherPanel from "./PublisherPanelPagesComponents/PublisherPanel";
-import ViewUploads from "./PublisherPanelPagesComponents/ViewUploads";
+// import ViewUploads from "./PublisherPanelPagesComponents/ViewUploads";
 import DownloadSheets from "./PublisherPanelPagesComponents/DownloadSheets";
 import PublisherEarnings from "./PublisherPanelPagesComponents/PublisherLevelEarnings";
 import AdopsPanel from "./ExecutivePanel/AdopsPanel"
 import "./App.css"
-import BusinessOwnerPanel from "./BusinessOwnerPanel/Overview";
+// import BusinessOwnerPanel from "./BusinessOwnerPanel/Overview";
 import AdvertiserDashboardHeader from "./Mtd-panel/Mtd-dashboard";
 import SheetTable from "./Mtd-panel/Mtd-Detail";
 // import AdopsPanel from "./ExecutivePanel/AdopsPanel";
@@ -44,18 +44,18 @@ export default function App() {
 
         {/* ✅ Auth Routes */}
         <Route path="/signup" element={<Signup />} />
-        <Route path="/business" element={<BusinessOwnerPanel/>} />
+        {/* <Route path="/business" element={<BusinessOwnerPanel/>} /> */}
                 <Route path="/adops" element={<AdopsPanel />} />
 
         <Route path="/login" element={<Login />} />
 
         {/* ✅ Advertiser Panel Routes */}
         <Route path="/advertiserpanel" element={<AdvertiserPanel />} />
-        <Route path="/main" element={<MainDashboard />} />
-        <Route path="/daily" element={<OTTReport />} />
+        {/* <Route path="/main" element={<MainDashboard />} /> */}
+        {/* <Route path="/daily" element={<OTTReport />} />
         <Route path="/video" element={<VideoReport />} />
-        <Route path="/adw" element={<AdWidget />} />
-        <Route path="/overall" element={<SummaryReport />} />
+        <Route path="/adw" element={<AdWidget />} /> */}
+        {/* <Route path="/overall" element={<SummaryReport />} /> */}
 <Route path="/mtd" element={<AdvertiserDashboardHeader/>}></Route>
 <Route path="/mtd-detail" element={<SheetTable/>}></Route>
 
@@ -64,7 +64,7 @@ export default function App() {
 
         {/* ✅ Publisher Panel */}
         <Route path="/publisherpanel" element={<PublisherPanel />} />
-        <Route path="/viewuploads" element={<ViewUploads />} />
+   
         <Route path="/downloadsheets" element={<DownloadSheets />} />
         <Route path="/publisherlevelearnings" element={<PublisherEarnings />} />
       </Routes>

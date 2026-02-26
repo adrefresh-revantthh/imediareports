@@ -15,29 +15,38 @@
 body {
   background: var(--bg);
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
 .report-page {
-  padding: 24px;
-  display: flex;
-  justify-content: center;
+  width: 95vw;
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* ================= CARD ================= */
 
+/* Full-bleed — no max-width, no border-radius, no shadow */
 .report-card {
   background: var(--card-bg);
   width: 100%;
-  max-width: 1300px;
-  border-radius: 14px;
-  padding: 24px 26px 30px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  min-height: 100vh;
+  max-width: 100%;
+  border-radius: 0;
+  padding: 28px 36px 40px;
+  box-shadow: none;
+  box-sizing: border-box;
 }
 
 /* ================= HEADERS ================= */
 
 .report-card h2,
 .report-card h3 {
+  margin-top: 0;
   margin-bottom: 20px;
   color: var(--text);
   font-weight: 600;
@@ -54,19 +63,25 @@ body {
 /* ================= FILTER BAR ================= */
 
 .filter-bar {
-  display: grid;
-  grid-template-columns:
-    repeat(2, 160px)
-    repeat(4, 1fr)
-    auto
-    auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: center;
   margin-bottom: 24px;
+  width: 100%;
+}
+
+.filter-bar label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 /* Inputs & Selects */
-
 .filter-bar input[type="date"],
 .filter-bar select {
   height: 40px;
@@ -78,6 +93,7 @@ body {
   color: var(--text);
   outline: none;
   transition: all 0.2s ease;
+  min-width: 140px;
 }
 
 .filter-bar input[type="date"]:focus,
@@ -86,22 +102,11 @@ body {
   box-shadow: 0 0 0 2px rgba(0, 127, 140, 0.12);
 }
 
-/* Checkbox */
-
-.filter-bar label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--muted);
-  cursor: pointer;
-}
-
 /* ================= BUTTONS ================= */
 
 .primary-btn {
   height: 40px;
-  padding: 0 18px;
+  padding: 0 20px;
   border-radius: 8px;
   border: none;
   background: var(--primary);
@@ -117,13 +122,19 @@ body {
   background: var(--primary-dark);
 }
 
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ================= SUMMARY METRICS ================= */
 
 .summary-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 16px;
   margin-bottom: 30px;
+  width: 100%;
 }
 
 .summary-box {
@@ -141,43 +152,98 @@ body {
   font-size: 13px;
   color: var(--muted);
   font-weight: 500;
-  margin-bottom: 6px;
+  margin: 0 0 6px 0;
 }
 
 .summary-box p {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
   color: var(--text);
+  margin: 0;
+}
+
+/* ================= TABLE ================= */
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 16px;
+}
+
+.report-table th {
+  background: #f8fafc;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.report-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--text);
+}
+
+.report-table tbody tr:hover {
+  background: #f8fafc;
 }
 
 /* ================= GRAPH ================= */
 
 canvas {
   margin-top: 20px;
+  width: 100% !important;
 }
 
-/* ================= EMPTY STATE ================= */
+/* ================= LANDING SCREEN ================= */
 
-.report-card h2 {
+.landing-wrap {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--bg);
+}
+
+.landing-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 60px 80px;
   text-align: center;
-}
-
-.report-card > button {
-  display: block;
-  margin: 0 auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
 /* ================= RESPONSIVE ================= */
 
-@media (max-width: 1100px) {
-  .filter-bar {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .report-card {
-    padding: 18px;
+    padding: 18px 16px 28px;
+  }
+
+  .filter-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-bar input[type="date"],
+  .filter-bar select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .primary-btn {
+    width: 100%;
   }
 
   .summary-box p {
